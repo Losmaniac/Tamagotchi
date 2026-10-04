@@ -30,7 +30,11 @@ export const useAppStore = create<AppState>()(
       name: STORAGE_KEY,
       version: SCHEMA_VERSION,
       storage: createJSONStorage(() => safeStorage),
-      partialize: ({ schemaVersion, settings }): SaveData => ({ schemaVersion, settings }),
+      partialize: ({ schemaVersion, settings, game }): SaveData => ({
+        schemaVersion,
+        settings,
+        game,
+      }),
       migrate: (persisted, version) => migrateSave(persisted, version, browserLocale()),
     },
   ),
