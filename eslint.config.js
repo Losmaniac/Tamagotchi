@@ -20,9 +20,13 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
+  },
+  {
+    files: ['src/ui/**/*.tsx'],
+    plugins: { 'react-refresh': reactRefresh },
+    rules: { 'react-refresh/only-export-components': ['warn', { allowConstantExport: true }] },
   },
   {
     // Game logic must stay framework-free so it is unit-testable.

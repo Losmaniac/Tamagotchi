@@ -6,6 +6,7 @@ import {
   buyItem,
   finishMinigame,
   act,
+  killNow,
   localDayKey,
   recordOpen,
   startEgg,
@@ -235,5 +236,15 @@ describe('game reducers', () => {
     const ids = ACHIEVEMENTS.map((a) => a.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids.length).toBeGreaterThanOrEqual(15);
+  });
+});
+
+describe('killNow', () => {
+  it('kills the pet and records it in the memorial once', () => {
+    const g = { ...createDefaultGame(), pet: baby(MORNING, 5) };
+    const r = killNow(g, MORNING + HOUR);
+    expect(r.game.pet?.dead).toBe(true);
+    expect(r.game.memorial).toHaveLength(1);
+    expect(killNow(r.game, MORNING + 2 * HOUR).game.memorial).toHaveLength(1);
   });
 });

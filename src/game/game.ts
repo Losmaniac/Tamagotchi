@@ -4,7 +4,7 @@
 import { unlockAchievements, type AchievementId } from './achievements';
 import { coinsForMinigame, rewardMinigame, type ActionResult } from './actions';
 import { LOG_LIMIT, MEMORIAL_LIMIT } from './constants';
-import { toMemorial } from './death';
+import { killPet, toMemorial } from './death';
 import { createEgg, type NewEggOptions } from './pet';
 import type { GameState, MinigameId } from './save';
 import { getItem, type ItemId } from './shop';
@@ -131,6 +131,17 @@ export function act(
   const events = [...ticked.events, ...result.events];
   const unlocked = [...ticked.unlocked, ...unlockAchievements(game, now)];
   return { game, events, unlocked, outcome: result.outcome };
+}
+
+/** Debug: the pet dies right now (recorded in the memorial like any death). */
+export function killNow(input: GameState, now: number): GameUpdate {
+  const game = cloneGame(input);
+  const pet = game.pet;
+  if (!pet || pet.dead) return finish(game, [], now);
+  killPet(pet, now, 'sickness');
+  const events: SimEvent[] = [{ type: 'died', t: now, cause: 'sickness' }];
+  absorbEvents(game, pet, events);
+  return finish(game, events, now);
 }
 
 export function startEgg(input: GameState, opts: NewEggOptions): GameState {
