@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Pocket Pals — a colorful 3D Tamagotchi-style PWA",
+  "description": "Pocket Pals \u2014 a colorful 3D Tamagotchi-style PWA",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -16,7 +16,9 @@
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "e2e": "playwright test",
-    "icons": "node scripts/gen-icons.mjs"
+    "icons": "node scripts/gen-icons.mjs",
+    "size": "node scripts/check-bundle.mjs",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run coverage && npm run build && npm run size"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

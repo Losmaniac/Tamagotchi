@@ -54,7 +54,7 @@ export function StatusBanner({ pet, onAction }: { pet: Pet; onAction: (a: PetAct
 
   if (!banner) return <div className="h-2" />;
   const tones = {
-    danger: 'bg-rose-500 text-white',
+    danger: 'bg-rose-600 text-white',
     warn: 'bg-amber-300 text-ink',
     info: 'bg-white/80 text-ink',
     calm: 'bg-indigo-900/70 text-white',

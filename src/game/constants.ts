@@ -109,7 +109,7 @@ export const GRUMPY_SCORE = 45;
 
 // --- Coins -------------------------------------------------------------------------------
 export const SURVIVAL_COINS_PER_DAY = 10;
-export const START_COINS = 20;
+export const START_COINS = 30; // enough for one cheap cosmetic right away
 
 // --- Storage -------------------------------------------------------------------------------
 export const LOG_LIMIT = 50;

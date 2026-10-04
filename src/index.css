@@ -4,8 +4,9 @@
   --font-sans:
     ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
     Arial, sans-serif;
-  --color-candy-pink: #ff6fb5;
-  --color-candy-purple: #8b5cf6;
+  /* Deep enough for white text (WCAG AA 4.5:1). */
+  --color-candy-pink: #d12f7a;
+  --color-candy-purple: #7c3aed;
   --color-candy-blue: #4cc9f0;
   --color-candy-mint: #3ddc97;
   --color-candy-yellow: #ffd23f;

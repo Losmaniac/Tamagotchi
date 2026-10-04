@@ -22,7 +22,7 @@ export function ActionBar({ onAction, disabled, highlight, lightsOn }: ActionBar
   ];
   return (
     <nav
-      aria-label="Actions"
+      aria-label={t('a11y.actions')}
       className="grid grid-cols-6 gap-1.5 px-2 pt-2"
       style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
     >
@@ -48,7 +48,7 @@ export function ActionBar({ onAction, disabled, highlight, lightsOn }: ActionBar
           </span>
           {highlight[id] && (
             <span
-              className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-rose-500 text-[11px] font-black text-white"
+              className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-rose-600 text-[11px] font-black text-white"
               aria-hidden="true"
             >
               !

@@ -1,29 +1,109 @@
 # Pocket Pals
 
-A colorful, mobile-first 3D virtual-pet game (classic Tamagotchi loop), installable as an offline PWA.
-English + Czech. Everything is stored on-device; no backend, no accounts, no analytics.
+A colorful, mobile-first 3D virtual-pet game with the classic Tamagotchi loop, installable as an
+offline PWA. Pick an animal, hatch it, and keep it alive: feed, play, clean, turn the lights off
+and give medicine. Neglect has real consequences. English and Czech. Everything stays on the
+device: no backend, no accounts, no analytics.
 
-See [CLAUDE.md](CLAUDE.md) for the full product spec and milestones.
+See [CLAUDE.md](CLAUDE.md) for the full product spec.
+
+## Features
+
+- **6 species × 3 colors** (cat, dog, bunny, fox, panda, baby dragon), built procedurally from
+  primitives with cel-shaded toon materials. No downloaded assets.
+- **Real-time simulation:** stats decay while the app is closed, with deterministic catch-up
+  in 5-minute steps and a seeded RNG. Includes poop, sickness, overfeeding, bedtime, tantrums and
+  discipline, care mistakes, life stages, Star/Normal/Grumpy evolution and death. A
+  "While you were away…" card summarises what happened.
+- **Petting:** tap to poke, slow swipe to stroke. Mood-driven faces and animations; particles.
+- **3 mini-games** (Snack Catch, Rhythm Tap, Left or Right), coins, a cosmetics-only shop,
+  16 achievements and a memorial for past pets.
+- **Settings:** language, sound, vibration, low-power mode, bedtime, export/import save, and
+  reset (asks twice).
+- **PWA:** fully offline after the first load, custom install button (Android), iOS
+  "Add to Home Screen" hint, and a "New version — tap to refresh" message.
 
 ## Develop
+
+Requires Node 22+.
 
 ```bash
 npm install
 npm run dev          # http://localhost:5173/Tamagotchi/
 ```
 
-| Script             | What it does                                       |
-| ------------------ | -------------------------------------------------- |
-| `npm run build`    | Type check + production build into `dist/`         |
-| `npm run preview`  | Serve the production build (service worker active) |
-| `npm run lint`     | ESLint                                             |
-| `npm run format`   | Prettier                                           |
-| `npm test`         | Vitest unit tests                                  |
-| `npm run coverage` | Unit tests with coverage for `src/game` (≥ 80 %)   |
-| `npm run e2e`      | Playwright smoke test on a 390×844 mobile viewport |
-| `npm run icons`    | Regenerate PNG icons from `public/icons/icon.svg`  |
+| Script             | What it does                                                       |
+| ------------------ | ------------------------------------------------------------------ |
+| `npm run dev`      | Vite dev server (no service worker in dev)                         |
+| `npm run build`    | Type check + production build into `dist/`                         |
+| `npm run preview`  | Serve the production build (service worker active)                 |
+| `npm run check`    | Everything CI runs: format, lint, typecheck, coverage, build, size |
+| `npm test`         | Vitest unit tests                                                  |
+| `npm run coverage` | Unit tests with coverage for `src/game` (threshold 80 %)           |
+| `npm run e2e`      | Playwright smoke tests on a 390×844 mobile viewport (builds first) |
+| `npm run size`     | Fails if first-screen JS exceeds 400 kB gzipped (after a build)    |
+| `npm run icons`    | Regenerate PNG icons from `public/icons/icon.svg`                  |
 
-If Chromium is preinstalled (e.g. in a sandbox), set `PW_CHROMIUM_PATH=/path/to/chrome` for
-`npm run e2e` / `npm run icons` instead of running `npx playwright install`.
+Playwright needs a Chromium: run `npx playwright install chromium` once. If a Chromium is already
+installed (for example in a sandbox), set `PW_CHROMIUM_PATH=/path/to/chrome` instead. This
+applies to `npm run e2e` and `npm run icons`.
 
-The app is built for GitHub Pages at `/Tamagotchi/`. For root hosting, build with `BASE_PATH=/`.
+### Debugging
+
+- `?debug=1` adds a 🐞 button with a 1× / 60× / 3 600× time multiplier, stat sliders, force
+  sickness, skip stage, kill pet and clear save.
+- `?gallery=1` shows every species side by side, with stage, mood, color and form switches.
+
+## Deploy (static hosting)
+
+The build is a static folder (`dist/`). By default it is built for GitHub Pages under
+`/Tamagotchi/`.
+
+**GitHub Pages (recommended):**
+
+1. In the repository, go to **Settings → Pages → Build and deployment** and set Source to
+   **GitHub Actions**.
+2. Push to `main`. `.github/workflows/deploy.yml` runs all checks and the e2e tests, then
+   publishes `dist/` to `https://<user>.github.io/Tamagotchi/`.
+
+**Netlify or any root domain:** build with `BASE_PATH=/ npm run build`, then publish `dist/`.
+The app has a single route, so no rewrite rules are needed.
+
+Serve over HTTPS; service workers need it, except on `localhost`.
+
+## Project structure
+
+```
+src/
+  game/        pure TS engine: types, constants, simulation, rng, evolution, death, save/migrations
+  store/       zustand store (persisted as "pocketpals:v1") + localStorage wrapper that never throws
+  three/       R3F scene, procedural pet models, materials, animations, particles
+  ui/          React screens, sheets and components (Tailwind)
+  minigames/   lazy-loaded mini-games + their pure logic
+  i18n/        en.ts, cs.ts (typed keys), translate + useT hook
+  audio/       Web Audio synth (no audio files) + haptics
+  pwa/         service worker registration, install prompt, update toast
+tests/         Vitest unit tests (engine, i18n, formatting, mini-game logic)
+e2e/           Playwright smoke tests
+```
+
+- **Balancing:** every number lives in `src/game/constants.ts`.
+  `tests/game/scenarios.test.ts` simulates attentive, casual and careless players to keep the
+  difficulty curve honest.
+- **Save format:** `src/game/save.ts` has `schemaVersion` and a migration table. Bump the
+  version and add a migration whenever the shape changes.
+- **Models:** each species is an entry in `MODEL_REGISTRY` (`src/three/PetModel.tsx`). A `.glb`
+  component with the same props can replace any entry.
+- **Push notifications** are not in the MVP (there is no backend). The hook point is noted in
+  `src/pwa/registerSW.ts`.
+
+## Notes
+
+- **Storage on iOS:** Safari may clear data for sites not opened for 7 days unless the app is
+  installed to the home screen. The app shows an early install hint and reminds players to
+  export a backup.
+- If `localStorage` is unavailable or full, the game keeps running in memory and shows a warning.
+- **Performance:** device pixel ratio is capped at 2 (1 in low-power mode). Low-power mode also
+  turns off particles and the shadow. Rendering pauses while the page is hidden and runs on
+  demand while sheets cover the pet. Mini-games and the shop load lazily, and three.js and React
+  are split into long-cached vendor chunks.

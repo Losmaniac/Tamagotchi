@@ -53,6 +53,7 @@ export const cs: Messages = {
   'stat.hygiene': 'Čistota',
   'stat.health': 'Zdraví',
 
+  'a11y.actions': 'Péče o mazlíčka',
   'action.feed': 'Krmit',
   'action.play': 'Hrát',
   'action.clean': 'Uklidit',
@@ -153,6 +154,7 @@ export const cs: Messages = {
 
   'settings.title': 'Nastavení',
   'settings.language': 'Jazyk',
+  'settings.general': 'Obecné',
   'settings.sound': 'Zvuk',
   'settings.haptics': 'Vibrace',
   'settings.lowPower': 'Úsporný režim',

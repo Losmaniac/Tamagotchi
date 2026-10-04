@@ -10,6 +10,27 @@ const base = process.env.BASE_PATH ?? '/Tamagotchi/';
 export default defineConfig({
   base,
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+  build: {
+    manifest: true,
+    // three.js alone is ~700 kB minified; the gzipped initial-load budget is enforced by
+    // scripts/check-bundle.mjs instead.
+    chunkSizeWarningLimit: 900,
+    rolldownOptions: {
+      output: {
+        // Vendor chunks change rarely, so they stay cached across app updates.
+        codeSplitting: {
+          groups: [
+            { name: 'three', test: /node_modules[\\/](three|@react-three)[\\/]/, priority: 3 },
+            {
+              name: 'react',
+              test: /node_modules[\\/](react|react-dom|scheduler|zustand)[\\/]/,
+              priority: 2,
+            },
+          ],
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),

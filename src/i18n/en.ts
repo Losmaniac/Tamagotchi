@@ -53,6 +53,7 @@ export const en = {
   'stat.health': 'Health',
 
   // Actions
+  'a11y.actions': 'Pet care',
   'action.feed': 'Feed',
   'action.play': 'Play',
   'action.clean': 'Clean',
@@ -159,6 +160,7 @@ export const en = {
   // Settings
   'settings.title': 'Settings',
   'settings.language': 'Language',
+  'settings.general': 'General',
   'settings.sound': 'Sound',
   'settings.haptics': 'Vibration',
   'settings.lowPower': 'Low-power mode',

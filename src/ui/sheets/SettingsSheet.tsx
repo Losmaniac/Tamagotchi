@@ -64,7 +64,7 @@ export function SettingsSheet({ onClose, onOpen, installSlot }: SettingsSheetPro
         <LanguageToggle />
       </Section>
 
-      <Section title={t('settings.title')}>
+      <Section title={t('settings.general')}>
         <Toggle
           label={`🔊 ${t('settings.sound')}`}
           checked={settings.sound}
