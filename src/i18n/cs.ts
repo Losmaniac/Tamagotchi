@@ -110,7 +110,7 @@ export const cs: Messages = {
   'egg.tapToWarm': 'Ťukej na vajíčko, ať je v teple',
 
   'away.title': 'Mezitím se stalo…',
-  'away.duration': 'Uplynulo {time}.',
+  'away.duration': 'Čas mimo hru: {time}',
   'away.hatched': 'Z vajíčka se vyklubalo: {name}!',
   'away.gotSick': '{name} je nemocné.',
   'away.evolved': 'Nová fáze: {stage} ({form})',
@@ -281,6 +281,31 @@ export const cs: Messages = {
     other: '{count} hodin',
   },
   'count.days': {
+    one: '{count} den',
+    few: '{count} dny',
+    many: '{count} dne',
+    other: '{count} dní',
+  },
+  // 1. pád (po dvojtečce, např. „Věk: …“)
+  'count.secondsNom': {
+    one: '{count} sekunda',
+    few: '{count} sekundy',
+    many: '{count} sekundy',
+    other: '{count} sekund',
+  },
+  'count.minutesNom': {
+    one: '{count} minuta',
+    few: '{count} minuty',
+    many: '{count} minuty',
+    other: '{count} minut',
+  },
+  'count.hoursNom': {
+    one: '{count} hodina',
+    few: '{count} hodiny',
+    many: '{count} hodiny',
+    other: '{count} hodin',
+  },
+  'count.daysNom': {
     one: '{count} den',
     few: '{count} dny',
     many: '{count} dne',

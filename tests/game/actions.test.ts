@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  canPlay,
   clean,
   coinsForMinigame,
   feedMeal,
@@ -90,6 +91,15 @@ describe('play and petting', () => {
     expect(coinsForMinigame(0)).toBe(5);
     expect(coinsForMinigame(1)).toBe(25);
     expect(coinsForMinigame(-1)).toBe(5);
+  });
+
+  it('tired pets refuse to play', () => {
+    const tired = baby(MORNING, 1, { stats: { ...half, energy: 5 } });
+    expect(play(tired, MORNING).outcome).toBe('tired');
+    expect(rewardMinigame(tired, MORNING, 1).outcome).toBe('tired');
+    expect(canPlay(tired)).toBe(false);
+    expect(canPlay(baby())).toBe(true);
+    expect(canPlay(egg())).toBe(false);
   });
 
   it('strokes are rate-limited', () => {

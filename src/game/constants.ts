@@ -45,6 +45,7 @@ export const PLAY_HUNGER_COST = 3;
 export const STROKE_HAPPINESS = 2;
 export const STROKE_COOLDOWN = 5_000; // ms between rewarded strokes
 export const MINIGAME_ENERGY_COST = 6;
+export const MIN_PLAY_ENERGY = 10; // too tired to play below this
 
 // --- Cleaning -----------------------------------------------------------------
 export const CLEAN_HYGIENE = 40;

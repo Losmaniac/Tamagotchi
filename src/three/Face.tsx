@@ -36,9 +36,9 @@ export function faceForMood(mood: Mood, grumpyForm: boolean, senior: boolean): F
     case 'sleeping':
       return { eyes: 'closed', mouth: 'pout', brows: baseBrows };
     case 'sick':
-      return { eyes: 'half', mouth: 'flat', brows: 'sad', sweat: true };
+      return { eyes: 'open', mouth: 'flat', brows: 'sad', sweat: true };
     case 'critical':
-      return { eyes: 'half', mouth: 'frown', brows: 'sad', sweat: true };
+      return { eyes: 'open', mouth: 'frown', brows: 'sad', sweat: true };
     case 'sad':
       return { eyes: 'open', mouth: 'frown', brows: 'sad' };
     case 'grumpy':

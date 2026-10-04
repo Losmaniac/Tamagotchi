@@ -277,6 +277,11 @@ export const en = {
   'count.minutes': { one: '{count} minute', other: '{count} minutes' },
   'count.hours': { one: '{count} hour', other: '{count} hours' },
   'count.days': { one: '{count} day', other: '{count} days' },
+  // Nominative forms (used after a label, e.g. "Age: …"); same as above in English.
+  'count.secondsNom': { one: '{count} second', other: '{count} seconds' },
+  'count.minutesNom': { one: '{count} minute', other: '{count} minutes' },
+  'count.hoursNom': { one: '{count} hour', other: '{count} hours' },
+  'count.daysNom': { one: '{count} day', other: '{count} days' },
   'count.coins': { one: '{count} coin', other: '{count} coins' },
   'count.poops': { one: '{count} poop', other: '{count} poops' },
   'count.poopsDropped': { one: '{count} poop dropped', other: '{count} poops dropped' },

@@ -9,6 +9,7 @@ import {
   MEAL_HUNGER,
   MEDICINE_NOT_SICK_HAPPINESS,
   MINIGAME_ENERGY_COST,
+  MIN_PLAY_ENERGY,
   NAP_ENERGY_THRESHOLD,
   OVERFEED_SICK_CHANCE,
   OVERFEED_SNACKS,
@@ -43,6 +44,7 @@ export type ActionOutcome =
   | 'notSick'
   | 'unfair'
   | 'awake'
+  | 'tired'
   | 'cured';
 
 export interface ActionResult {
@@ -100,6 +102,7 @@ export function feedSnack(input: Pet, now: number): ActionResult {
 /** Quick play with a toy (no mini-game). */
 export function play(input: Pet, _now: number): ActionResult {
   return run(input, ['hatched', 'awake'], (pet) => {
+    if (pet.stats.energy < MIN_PLAY_ENERGY) return 'tired';
     addStat(pet, 'happiness', PLAY_HAPPINESS);
     addStat(pet, 'energy', -PLAY_ENERGY_COST);
     addStat(pet, 'hunger', -PLAY_HUNGER_COST);
@@ -110,12 +113,18 @@ export function play(input: Pet, _now: number): ActionResult {
 /** Reward after a mini-game; `score` is normalised to 0–1. */
 export function rewardMinigame(input: Pet, _now: number, score: number): ActionResult {
   return run(input, ['hatched', 'awake'], (pet) => {
+    if (pet.stats.energy < MIN_PLAY_ENERGY) return 'tired';
     const s = Math.min(1, Math.max(0, score));
     addStat(pet, 'happiness', Math.round(10 + 15 * s));
     addStat(pet, 'energy', -MINIGAME_ENERGY_COST);
     addStat(pet, 'hunger', -PLAY_HUNGER_COST);
     return 'ok';
   });
+}
+
+/** Whether the pet can start a game right now (awake, hatched, enough energy). */
+export function canPlay(pet: Pet): boolean {
+  return !pet.dead && pet.stage !== 'egg' && !pet.asleep && pet.stats.energy >= MIN_PLAY_ENERGY;
 }
 
 export function coinsForMinigame(score: number): number {

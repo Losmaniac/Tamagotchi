@@ -2,12 +2,12 @@ import { GEO } from './geometry';
 import { flat, toon } from './materials';
 
 const SLOTS: [number, number][] = [
-  [0.85, 0.35],
-  [-0.85, 0.3],
-  [0.6, 0.85],
-  [-0.6, 0.85],
-  [1.05, -0.2],
-  [-1.05, -0.25],
+  [0.62, 0.25],
+  [-0.62, 0.2],
+  [0.45, 0.6],
+  [-0.45, 0.6],
+  [0.78, -0.15],
+  [-0.78, -0.2],
 ];
 
 /** Cute swirl poops placed around the pet. */
@@ -16,7 +16,7 @@ export function Poops({ count }: { count: number }) {
   return (
     <>
       {SLOTS.slice(0, count).map(([x, z], i) => (
-        <group key={i} position={[x, 0, z]} scale={0.9}>
+        <group key={i} position={[x, 0, z]} scale={0.7}>
           <mesh
             geometry={GEO.sphere}
             material={brown}
