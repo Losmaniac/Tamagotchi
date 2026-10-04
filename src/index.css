@@ -36,6 +36,11 @@
     touch-action: manipulation;
   }
 
+  :focus-visible {
+    outline: 3px solid var(--color-candy-purple);
+    outline-offset: 2px;
+  }
+
   button {
     user-select: none;
     -webkit-user-select: none;

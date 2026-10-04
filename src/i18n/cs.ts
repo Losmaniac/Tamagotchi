@@ -259,6 +259,7 @@ export const cs: Messages = {
     'Nainstaluj si Pocket Pals, ať je mazlíček v bezpečí — prohlížeče mažou data webů, které dlouho neotevřeš.',
   'pwa.iosHint': 'Na iPhonu: klepni na Sdílet a pak „Přidat na plochu“.',
   'pwa.update': 'Nová verze — klepni pro obnovení',
+  'pwa.exportTip': 'Tip: zálohu uložíš v Nastavení → Exportovat.',
   'pwa.dismiss': 'Teď ne',
   'storage.failed': 'Ukládání v tomhle zařízení nefunguje. Po zavření můžeš o postup přijít.',
 

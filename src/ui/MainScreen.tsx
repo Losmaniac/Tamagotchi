@@ -1,6 +1,8 @@
 import { lazy, Suspense, useCallback, useState } from 'react';
 import type { MinigameId } from '../game/save';
 import { useT } from '../i18n/useT';
+import { InstallBanner, InstallSetting } from '../pwa/PwaBanners';
+import { withChunkReload } from '../pwa/registerSW';
 import { useAppStore, type PetAction } from '../store/useAppStore';
 import { AwaySummary } from './AwaySummary';
 import { ActionBar, type ActionId } from './components/ActionBar';
@@ -23,9 +25,11 @@ type SheetId =
   'feed' | 'play' | 'stats' | 'settings' | 'memorial' | 'achievements' | 'debug' | 'shop';
 
 // Lazy-loaded: only fetched when opened.
-const ShopSheet = lazy(() => import('./sheets/ShopSheet'));
-const MinigameHost = lazy(() =>
-  import('../minigames/MinigameHost').then((m) => ({ default: m.MinigameHost })),
+const ShopSheet = lazy(withChunkReload(() => import('./sheets/ShopSheet')));
+const MinigameHost = lazy(
+  withChunkReload(() =>
+    import('../minigames/MinigameHost').then((m) => ({ default: m.MinigameHost })),
+  ),
 );
 
 const DEBUG = new URLSearchParams(location.search).get('debug') === '1';
@@ -120,6 +124,7 @@ export function MainScreen() {
 
       <StatBars stats={pet.stats} dim={egg} />
       <StorageWarning />
+      {!egg && <InstallBanner />}
       <div className="mt-2">
         <StatusBanner pet={pet} onAction={onAction} />
       </div>
@@ -161,7 +166,13 @@ export function MainScreen() {
         />
       )}
       {sheet === 'stats' && <StatsSheet pet={pet} log={game.log} onClose={close} />}
-      {sheet === 'settings' && <SettingsSheet onClose={close} onOpen={(s) => setSheet(s)} />}
+      {sheet === 'settings' && (
+        <SettingsSheet
+          onClose={close}
+          onOpen={(s) => setSheet(s)}
+          installSlot={<InstallSetting />}
+        />
+      )}
       {sheet === 'memorial' && <MemorialSheet entries={game.memorial} onClose={close} />}
       {sheet === 'achievements' && <AchievementsSheet onClose={close} />}
       {sheet === 'debug' && <DebugPanel onClose={close} />}

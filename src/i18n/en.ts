@@ -269,6 +269,7 @@ export const en = {
     'Install Pocket Pals so your pet stays safe — browsers may wipe data from sites you haven’t opened in a while.',
   'pwa.iosHint': 'On iPhone: tap Share, then “Add to Home Screen”.',
   'pwa.update': 'New version — tap to refresh',
+  'pwa.exportTip': 'Tip: back up your save in Settings → Export.',
   'pwa.dismiss': 'Not now',
   'storage.failed':
     'Saving isn’t working on this device. Progress may be lost when you close the app.',

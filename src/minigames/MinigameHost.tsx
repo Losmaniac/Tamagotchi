@@ -3,14 +3,15 @@ import { sfx, unlockAudio } from '../audio/synth';
 import type { MinigameId } from '../game/save';
 import type { Species } from '../game/types';
 import { useT } from '../i18n/useT';
+import { withChunkReload } from '../pwa/registerSW';
 import { useAppStore } from '../store/useAppStore';
 import { useReducedMotion } from '../ui/hooks';
 
 // Each game is its own chunk, loaded only when played.
 const GAMES = {
-  snackCatch: lazy(() => import('./SnackCatch')),
-  rhythmTap: lazy(() => import('./RhythmTap')),
-  leftRight: lazy(() => import('./LeftRight')),
+  snackCatch: lazy(withChunkReload(() => import('./SnackCatch'))),
+  rhythmTap: lazy(withChunkReload(() => import('./RhythmTap'))),
+  leftRight: lazy(withChunkReload(() => import('./LeftRight'))),
 };
 
 type Phase =

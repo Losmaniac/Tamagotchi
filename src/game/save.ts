@@ -26,6 +26,7 @@ export interface Settings {
   haptics: boolean;
   lowPower: boolean;
   bedtime: Bedtime;
+  installHintDismissed: boolean;
 }
 
 export interface Progress {
@@ -60,7 +61,14 @@ export interface SaveData {
 }
 
 export function createDefaultSettings(locale: Locale): Settings {
-  return { locale, sound: true, haptics: true, lowPower: false, bedtime: { ...DEFAULT_BEDTIME } };
+  return {
+    locale,
+    sound: true,
+    haptics: true,
+    lowPower: false,
+    bedtime: { ...DEFAULT_BEDTIME },
+    installHintDismissed: false,
+  };
 }
 
 export function createDefaultGame(): GameState {
@@ -151,6 +159,7 @@ function sanitizeSettings(raw: unknown, fallback: Settings): Settings {
     sound: bool(s.sound, fallback.sound),
     haptics: bool(s.haptics, fallback.haptics),
     lowPower: bool(s.lowPower, fallback.lowPower),
+    installHintDismissed: bool(s.installHintDismissed, fallback.installHintDismissed),
     bedtime: {
       start: isMinutes(bed.start) ? bed.start : fallback.bedtime.start,
       end: isMinutes(bed.end) ? bed.end : fallback.bedtime.end,
