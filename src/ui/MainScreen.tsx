@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { lazy, Suspense, useCallback, useState } from 'react';
 import type { MinigameId } from '../game/save';
 import { useT } from '../i18n/useT';
 import { useAppStore, type PetAction } from '../store/useAppStore';
@@ -19,7 +19,14 @@ import { PlaySheet } from './sheets/PlaySheet';
 import { SettingsSheet } from './sheets/SettingsSheet';
 import { StatsSheet } from './sheets/StatsSheet';
 
-type SheetId = 'feed' | 'play' | 'stats' | 'settings' | 'memorial' | 'achievements' | 'debug';
+type SheetId =
+  'feed' | 'play' | 'stats' | 'settings' | 'memorial' | 'achievements' | 'debug' | 'shop';
+
+// Lazy-loaded: only fetched when opened.
+const ShopSheet = lazy(() => import('./sheets/ShopSheet'));
+const MinigameHost = lazy(() =>
+  import('../minigames/MinigameHost').then((m) => ({ default: m.MinigameHost })),
+);
 
 const DEBUG = new URLSearchParams(location.search).get('debug') === '1';
 
@@ -32,7 +39,7 @@ export function MainScreen() {
   const perform = useAppStore((s) => s.perform);
   const dismissSummary = useAppStore((s) => s.dismissSummary);
   const [sheet, setSheet] = useState<SheetId | null>(null);
-  const [, setGame] = useState<MinigameId | null>(null);
+  const [playing, setPlaying] = useState<MinigameId | null>(null);
   const close = useCallback(() => setSheet(null), []);
 
   const onAction = useCallback((a: PetAction) => void perform(a), [perform]);
@@ -79,13 +86,18 @@ export function MainScreen() {
             {pet.stage !== 'egg' && pet.form !== 'normal' ? ` · ${t(`form.${pet.form}`)}` : ''}
           </p>
         </div>
-        <div
-          className="flex h-12 items-center gap-1 rounded-full bg-white/75 px-3 font-black text-ink shadow-sm"
-          aria-label={`${t('coins.label')}: ${n(game.coins)}`}
+        <button
+          type="button"
+          onClick={() => setSheet('shop')}
+          className="flex h-12 items-center gap-1 rounded-full bg-white/75 px-3 font-black text-ink shadow-sm active:scale-95"
+          aria-label={`${t('action.shop')} · ${t('coins.label')}: ${n(game.coins)}`}
         >
           <span aria-hidden="true">🪙</span>
           {n(game.coins)}
-        </div>
+          <span aria-hidden="true" className="text-sm">
+            🛍️
+          </span>
+        </button>
         {DEBUG && (
           <button
             type="button"
@@ -116,7 +128,8 @@ export function MainScreen() {
         <PetView
           pet={pet}
           inventory={game.inventory}
-          paused={sheet !== null || summary !== null}
+          paused={(sheet !== null && sheet !== 'shop') || summary !== null || playing !== null}
+          framing={sheet === 'shop' ? 'top' : 'center'}
           onAction={onAction}
         />
         <FeedbackToast />
@@ -143,7 +156,7 @@ export function MainScreen() {
           onAction={onAction}
           onGame={(id) => {
             setSheet(null);
-            setGame(id);
+            setPlaying(id);
           }}
         />
       )}
@@ -152,6 +165,17 @@ export function MainScreen() {
       {sheet === 'memorial' && <MemorialSheet entries={game.memorial} onClose={close} />}
       {sheet === 'achievements' && <AchievementsSheet onClose={close} />}
       {sheet === 'debug' && <DebugPanel onClose={close} />}
+      <Suspense>
+        {sheet === 'shop' && <ShopSheet onClose={close} />}
+        {playing && (
+          <MinigameHost
+            id={playing}
+            species={pet.species}
+            name={pet.name}
+            onClose={() => setPlaying(null)}
+          />
+        )}
+      </Suspense>
       {summary && <AwaySummary summary={summary} name={pet.name} onClose={dismissSummary} />}
       <AchievementToast />
     </main>

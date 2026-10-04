@@ -1,11 +1,14 @@
 import { useLayoutEffect, type ReactNode } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 
-function LookAt({ y }: { y: number }) {
+function CameraRig({ y, z }: { y: number; z: number }) {
   const camera = useThree((s) => s.camera);
+  const invalidate = useThree((s) => s.invalidate);
   useLayoutEffect(() => {
+    camera.position.set(0, 1.35, z);
     camera.lookAt(0, y, 0);
-  }, [camera, y]);
+    invalidate();
+  }, [camera, y, z, invalidate]);
   return null;
 }
 
@@ -17,6 +20,8 @@ export interface PetCanvasProps {
   mode?: 'running' | 'paused' | 'hidden';
   className?: string;
   cameraZ?: number;
+  /** Camera target height; lower values move the pet up the screen. */
+  lookAtY?: number;
   label?: string;
 }
 
@@ -27,6 +32,7 @@ export function PetCanvas({
   mode = 'running',
   className,
   cameraZ = 4.6,
+  lookAtY = 0.8,
   label,
 }: PetCanvasProps) {
   return (
@@ -43,7 +49,7 @@ export function PetCanvas({
         camera={{ position: [0, 1.35, cameraZ], fov: 32 }}
         style={{ touchAction: 'none' }}
       >
-        <LookAt y={0.8} />
+        <CameraRig y={lookAtY} z={cameraZ} />
         <ambientLight intensity={1.1} />
         <directionalLight position={[2.5, 4, 3.5]} intensity={2.4} />
         <directionalLight position={[-3, 2, -2]} intensity={0.6} color="#ffd6f6" />

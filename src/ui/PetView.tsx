@@ -18,11 +18,13 @@ interface PetViewProps {
   pet: Pet;
   inventory: Inventory;
   paused: boolean;
+  /** 'top' frames the pet in the upper part of the screen (shop preview). */
+  framing?: 'center' | 'top';
   onAction: (a: PetAction) => void;
 }
 
 /** The 3D pet with petting gestures and lights / critical overlays. */
-export function PetView({ pet, inventory, paused, onAction }: PetViewProps) {
+export function PetView({ pet, inventory, paused, framing = 'center', onAction }: PetViewProps) {
   const { t } = useT();
   const lowPower = useAppStore((s) => s.settings.lowPower);
   const reaction = useAppStore((s) => s.reaction);
@@ -96,7 +98,8 @@ export function PetView({ pet, inventory, paused, onAction }: PetViewProps) {
         className="absolute inset-0"
         lowPower={lowPower}
         mode={mode}
-        cameraZ={4.1}
+        cameraZ={framing === 'top' ? 9.5 : 4.1}
+        lookAtY={framing === 'top' ? -1.05 : 0.8}
         label={`${pet.name}, ${t(`stage.${pet.stage}`)}`}
       >
         <PetStage
