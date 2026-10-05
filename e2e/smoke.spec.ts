@@ -184,7 +184,7 @@ test('learning features: facts, encyclopedia, snacks, piggy bank, word game', as
   await expect(page.getByRole('button', { name: /New fact/ })).toHaveCount(0);
   await page.getByRole('button', { name: 'Menu' }).click();
   await page.getByRole('button', { name: /Encyclopedia/ }).click();
-  await expect(page.getByText('1 of 48 facts learned')).toBeVisible();
+  await expect(page.getByText('1 of 88 facts learned')).toBeVisible();
   await page.getByRole('button', { name: 'Close' }).click();
 
   // Healthy snack from the snack picker (the second species is the pup; its favourite is a bone).

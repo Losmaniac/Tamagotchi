@@ -9,8 +9,9 @@ See [CLAUDE.md](CLAUDE.md) for the full product spec.
 
 ## Features
 
-- **6 species × 3 colors** (cat, dog, bunny, fox, panda, baby dragon), built procedurally from
-  primitives with cel-shaded toon materials. No downloaded assets.
+- **11 species × 3 colors** (cat, dog, bunny, fox, panda, baby dragon, axolotl, penguin, owl,
+  turtle and Sparky, an original electric critter), built procedurally from primitives. No
+  downloaded assets.
 - **Real-time simulation:** stats decay while the app is closed, with deterministic catch-up
   in 5-minute steps and a seeded RNG. Includes poop, sickness, overfeeding, bedtime, tantrums and
   discipline, care mistakes, life stages, Star/Normal/Grumpy evolution and death. A
@@ -22,6 +23,15 @@ See [CLAUDE.md](CLAUDE.md) for the full product spec.
   reset (asks twice).
 - **PWA:** fully offline after the first load, custom install button (Android), iOS
   "Add to Home Screen" hint, and a "New version — tap to refresh" message.
+
+### New in 0.3 — more pals, softer graphics
+
+- **5 new species:** axolotl, penguin, owl, turtle and **Sparky**, an original electric creature
+  that gives off little sparks when happy. Each has its own colors, background, voice, favourite
+  food and 8 true facts (88 facts in total; Sparky's are about real electric animals).
+- **Plush graphics:** velvety fur with sheen, glossy eyes with coloured irises, toe beans, soft
+  studio lighting with procedural reflections and a small pedestal. Low-power mode keeps the
+  lighter cel-shaded cartoon look.
 
 ### New in 0.2 — nicer, calmer, more educational
 
@@ -36,7 +46,7 @@ See [CLAUDE.md](CLAUDE.md) for the full product spec.
   explains which button helps.
 - **Joy:** "I missed you!" when you come back, birthday gifts (days 1, 7, 14 and 30), a thank-you
   after a perfect day, and secret favourite foods per species.
-- **Animal facts:** 48 true facts (8 per species, real reptiles for the dragon). The pet tells
+- **Animal facts:** true facts, 8 per species (real reptiles for the dragon). The pet tells
   one a day; learned facts fill the encyclopedia, with a daily quiz for coins.
 - **Bilingual mode:** the pet speaks both languages, and a fourth mini-game, **Word Snack**,
   practises English ↔ Czech vocabulary.
@@ -127,6 +137,7 @@ e2e/           Playwright smoke tests
   export a backup.
 - If `localStorage` is unavailable or full, the game keeps running in memory and shows a warning.
 - **Performance:** device pixel ratio is capped at 2 (1 in low-power mode). Low-power mode also
-  turns off particles and the shadow. Rendering pauses while the page is hidden and runs on
+  turns off particles and the shadow and switches to the cartoon look. If the plush look runs
+  below about 28 fps, the app switches to the cartoon look automatically for that session. Rendering pauses while the page is hidden and runs on
   demand while sheets cover the pet. Mini-games and the shop load lazily, and three.js and React
   are split into long-cached vendor chunks.

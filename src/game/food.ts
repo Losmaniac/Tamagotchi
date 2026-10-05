@@ -17,6 +17,10 @@ export const SNACKS = [
   { id: 'bamboo', emoji: '🎋', sweet: false, happiness: 3, health: 2 },
   { id: 'chili', emoji: '🌶️', sweet: false, happiness: 5, health: 1 },
   { id: 'bone', emoji: '🦴', sweet: false, happiness: 6, health: 1 },
+  { id: 'worm', emoji: '🪱', sweet: false, happiness: 5, health: 2 },
+  { id: 'cricket', emoji: '🦗', sweet: false, happiness: 5, health: 2 },
+  { id: 'lettuce', emoji: '🥬', sweet: false, happiness: 3, health: 3 },
+  { id: 'lemon', emoji: '🍋', sweet: false, happiness: 6, health: 2 },
   { id: 'cookie', emoji: '🍪', sweet: true, happiness: 10, health: 0 },
   { id: 'cupcake', emoji: '🧁', sweet: true, happiness: 12, health: -1 },
 ] as const satisfies readonly Snack[];
@@ -31,6 +35,11 @@ export const FAVORITE_FOOD: Record<Species, SnackId> = {
   fox: 'berries',
   panda: 'bamboo',
   dragon: 'chili',
+  axolotl: 'worm',
+  penguin: 'fish',
+  owl: 'cricket',
+  turtle: 'lettuce',
+  sparky: 'lemon',
 };
 
 export function getSnack(id: string): Snack | undefined {

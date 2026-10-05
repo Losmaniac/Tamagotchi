@@ -10,8 +10,8 @@ import { Accessories } from './Accessories';
 import type { Equipped, Pose, ReactionState } from './anim';
 import { Face, HEAD_R, HEAD_SCALE, onHead, type FaceState } from './Face';
 import { GEO } from './geometry';
-import { flat, toon } from './materials';
-import type { SpeciesColors } from './palette';
+import { flat, getMaterialQuality, gloss, glow, toon } from './materials';
+import { IRIS, type SpeciesColors } from './palette';
 
 export interface PetModelProps {
   colors: SpeciesColors;
@@ -44,6 +44,8 @@ interface SpeciesConfig {
   mouthY?: number;
   mouthLift?: number;
   limbColor?: (c: SpeciesColors) => string;
+  /** Feet colour (defaults to the limb colour). */
+  footColor?: (c: SpeciesColors) => string;
 }
 
 const BODY_Y = 0.42;
@@ -605,6 +607,379 @@ function DragonBody({ c, stage, motion, liveliness }: PartProps) {
   );
 }
 
+// --- New species (v0.3) -------------------------------------------------------------
+
+function AxolotlHead({ c, stage, motion, liveliness }: PartProps) {
+  const k = isYoung(stage) ? 0.85 : 1;
+  return (
+    <>
+      {([-1, 1] as const).map((s) =>
+        [0.22, 0.05, -0.12].map((y, i) => (
+          <Wag
+            key={`${s}${i}`}
+            position={[s * 0.5, y, -0.08]}
+            rotation={[0, 0, s * (-0.9 + i * 0.45)]}
+            speed={2.4 + i * 0.4}
+            amount={0.12}
+            axis="z"
+            motion={motion}
+            liveliness={liveliness}
+          >
+            <group scale={k}>
+              <mesh
+                geometry={GEO.capsule}
+                material={toon(c.accent)}
+                position={[s * 0.12, 0, 0]}
+                rotation={[0, 0, Math.PI / 2]}
+                scale={[0.035, 0.18, 0.035]}
+              />
+              {[0.06, 0.12, 0.18].map((x) => (
+                <mesh
+                  key={x}
+                  geometry={GEO.sphereLow}
+                  material={toon(c.accent)}
+                  position={[s * x, 0.035, 0]}
+                  scale={[0.03, 0.05, 0.025]}
+                />
+              ))}
+            </group>
+          </Wag>
+        )),
+      )}
+    </>
+  );
+}
+
+function AxolotlBody({ c, motion, liveliness }: PartProps) {
+  return (
+    <Wag
+      position={[0, -0.12, -0.3]}
+      speed={2.2}
+      amount={0.35}
+      axis="y"
+      motion={motion}
+      liveliness={liveliness}
+    >
+      <mesh
+        geometry={GEO.cone}
+        material={toon(c.body)}
+        position={[0, 0, -0.18]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        scale={[0.14, 0.42, 0.18]}
+      />
+      <mesh
+        geometry={GEO.sphere}
+        material={toon(c.belly, true)}
+        position={[0, 0.06, -0.2]}
+        scale={[0.02, 0.15, 0.26]}
+      />
+    </Wag>
+  );
+}
+
+function PenguinHead(_: PartProps) {
+  return null;
+}
+
+function PenguinFace({ c }: PartProps) {
+  return (
+    <>
+      {([-1, 1] as const).map((s) => (
+        <mesh
+          key={s}
+          geometry={GEO.sphere}
+          material={toon(c.belly)}
+          position={onHead(s * 0.17, -0.03, -0.1)}
+          scale={[0.2, 0.25, 0.12]}
+        />
+      ))}
+      <mesh
+        geometry={GEO.cone}
+        material={gloss(c.accent)}
+        position={onHead(0, -0.1, 0.02)}
+        rotation={[Math.PI / 2, 0, 0]}
+        scale={[0.07, 0.14, 0.05]}
+      />
+    </>
+  );
+}
+
+function PenguinBody({ c, motion, liveliness }: PartProps) {
+  return (
+    <>
+      {([-1, 1] as const).map((s) => (
+        <Wag
+          key={s}
+          position={[s * 0.33, 0.08, 0]}
+          rotation={[0, 0, s * 0.25]}
+          speed={5}
+          amount={0.25}
+          axis="z"
+          motion={motion}
+          liveliness={liveliness}
+        >
+          <mesh
+            geometry={GEO.sphere}
+            material={toon(c.body)}
+            position={[s * 0.03, -0.12, 0]}
+            scale={[0.06, 0.2, 0.14]}
+          />
+        </Wag>
+      ))}
+      <mesh
+        geometry={GEO.cone}
+        material={toon(c.body)}
+        position={[0, -0.28, -0.3]}
+        rotation={[-2.2, 0, 0]}
+        scale={[0.08, 0.12, 0.04]}
+      />
+    </>
+  );
+}
+
+function OwlHead({ c, stage }: PartProps) {
+  const k = isYoung(stage) ? 0.75 : 1;
+  return (
+    <>
+      {([-1, 1] as const).map((s) => (
+        <mesh
+          key={s}
+          geometry={GEO.cone}
+          material={toon(c.accent)}
+          position={[s * 0.33, 0.47, -0.02]}
+          rotation={[0, 0, -s * 0.55]}
+          scale={[0.09 * k, 0.22 * k, 0.06]}
+        />
+      ))}
+    </>
+  );
+}
+
+function OwlFace({ c }: PartProps) {
+  return (
+    <>
+      {([-1, 1] as const).map((s) => (
+        <mesh
+          key={s}
+          geometry={GEO.sphere}
+          material={toon(c.belly)}
+          position={onHead(s * 0.2, 0.02, -0.06)}
+          scale={[0.17, 0.19, 0.08]}
+        />
+      ))}
+      <mesh
+        geometry={GEO.cone}
+        material={gloss('#f4a259')}
+        position={onHead(0, -0.1, 0.02)}
+        rotation={[Math.PI, 0, 0]}
+        scale={[0.045, 0.1, 0.04]}
+      />
+    </>
+  );
+}
+
+function OwlBody({ c, motion, liveliness }: PartProps) {
+  return (
+    <>
+      {([-1, 1] as const).map((s) => (
+        <Wag
+          key={s}
+          position={[s * 0.32, 0.12, -0.02]}
+          rotation={[0, 0, s * 0.15]}
+          speed={3}
+          amount={0.12}
+          axis="z"
+          motion={motion}
+          liveliness={liveliness}
+        >
+          <mesh
+            geometry={GEO.sphere}
+            material={toon(c.accent)}
+            position={[s * 0.02, -0.14, 0]}
+            scale={[0.08, 0.24, 0.2]}
+          />
+        </Wag>
+      ))}
+      {[
+        [-0.08, 0.06],
+        [0.08, 0.06],
+        [0, -0.04],
+        [-0.1, -0.12],
+        [0.1, -0.12],
+      ].map(([x, y], i) => (
+        <mesh
+          key={i}
+          geometry={GEO.sphereLow}
+          material={toon(c.accent)}
+          position={[x!, y!, 0.345]}
+          scale={[0.025, 0.018, 0.012]}
+        />
+      ))}
+    </>
+  );
+}
+
+function TurtleHead(_: PartProps) {
+  return null;
+}
+
+function TurtleBody({ c, motion, liveliness }: PartProps) {
+  const plate = mixHex(c.accent, '#ffffff', 0.25);
+  return (
+    <>
+      <mesh
+        geometry={GEO.sphere}
+        material={gloss(c.accent)}
+        position={[0, 0.04, -0.12]}
+        scale={[0.43, 0.42, 0.36]}
+      />
+      <mesh
+        geometry={GEO.ring}
+        material={toon(mixHex(c.accent, '#000000', 0.15))}
+        position={[0, -0.12, -0.05]}
+        rotation={[Math.PI / 2 + 0.25, 0, 0]}
+        scale={[0.4, 0.36, 0.25]}
+      />
+      {[
+        [0, 0.28, -0.32],
+        [-0.22, 0.16, -0.36],
+        [0.22, 0.16, -0.36],
+        [0, 0.04, -0.46],
+        [-0.3, -0.06, -0.24],
+        [0.3, -0.06, -0.24],
+      ].map(([x, y, z], i) => (
+        <mesh
+          key={i}
+          geometry={GEO.sphereLow}
+          material={gloss(plate)}
+          position={[x!, y!, z!]}
+          scale={[0.11, 0.11, 0.04]}
+        />
+      ))}
+      <Wag
+        position={[0, -0.25, -0.42]}
+        speed={3}
+        amount={0.3}
+        axis="y"
+        motion={motion}
+        liveliness={liveliness}
+      >
+        <mesh
+          geometry={GEO.cone}
+          material={toon(c.body)}
+          rotation={[-2, 0, 0]}
+          scale={[0.05, 0.12, 0.05]}
+        />
+      </Wag>
+    </>
+  );
+}
+
+function SparkyHead({ c, motion, liveliness }: PartProps) {
+  return (
+    <>
+      {([-1, 1] as const).map((s) => (
+        <Wag
+          key={s}
+          position={[s * 0.2, 0.45, 0]}
+          rotation={[0, 0, -s * 0.35]}
+          speed={3.2}
+          amount={0.14}
+          axis="z"
+          motion={motion}
+          liveliness={liveliness}
+        >
+          <mesh
+            geometry={GEO.cylinder}
+            material={toon(c.body)}
+            position={[0, 0.14, 0]}
+            scale={[0.02, 0.28, 0.02]}
+          />
+          <mesh
+            geometry={GEO.sphere}
+            material={glow(c.accent)}
+            position={[0, 0.3, 0]}
+            scale={0.07}
+          />
+          <mesh
+            geometry={GEO.sphereLow}
+            material={flat('#ffffff', 0.85)}
+            position={[-0.02, 0.32, 0.05]}
+            scale={0.02}
+          />
+        </Wag>
+      ))}
+      {([-1, 1] as const).map((s) => (
+        <mesh
+          key={`e${s}`}
+          geometry={GEO.sphere}
+          material={toon(c.body)}
+          position={[s * 0.42, 0.25, -0.05]}
+          scale={[0.1, 0.1, 0.07]}
+        />
+      ))}
+    </>
+  );
+}
+
+function SparkyFace({ c }: PartProps) {
+  return (
+    <>
+      {([-1, 1] as const).map((s) => (
+        <mesh
+          key={s}
+          geometry={GEO.cone}
+          material={glow(c.accent)}
+          position={onHead(s * 0.36, -0.12, 0.0)}
+          rotation={[0, s * 0.6, s * 0.5]}
+          scale={[0.025, 0.06, 0.01]}
+        />
+      ))}
+      <mesh
+        geometry={GEO.sphereLow}
+        material={gloss('#3a2a2a')}
+        position={onHead(0, -0.09, 0.015)}
+        scale={[0.03, 0.022, 0.02]}
+      />
+    </>
+  );
+}
+
+function SparkyBody({ c, motion, liveliness }: PartProps) {
+  return (
+    <Wag
+      position={[0, -0.12, -0.33]}
+      speed={6}
+      amount={0.2}
+      axis="z"
+      motion={motion}
+      liveliness={liveliness}
+    >
+      {[
+        [0, 0, 0, 0.12],
+        [0.08, 0.1, -0.06, 0.09],
+        [-0.06, 0.16, -0.08, 0.08],
+      ].map(([x, y, z, r], i) => (
+        <mesh
+          key={i}
+          geometry={GEO.sphere}
+          material={toon(i === 0 ? c.belly : c.body)}
+          position={[x!, y!, z!]}
+          scale={r!}
+        />
+      ))}
+    </Wag>
+  );
+}
+
+function mixHex(a: string, b: string, t: number): string {
+  const pa = parseInt(a.slice(1), 16);
+  const pb = parseInt(b.slice(1), 16);
+  const ch = (shift: number) =>
+    Math.round(((pa >> shift) & 255) * (1 - t) + ((pb >> shift) & 255) * t);
+  return `#${((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0')}`;
+}
+
 export const MODEL_REGISTRY: Record<Species, SpeciesConfig> = {
   cat: { Head: CatHead, Face: CatFace, Body: CatBody },
   dog: { Head: DogHead, Face: DogFace, Body: DogBody, mouthY: -0.24, mouthLift: 0.0 },
@@ -612,6 +987,18 @@ export const MODEL_REGISTRY: Record<Species, SpeciesConfig> = {
   fox: { Head: FoxHead, Face: FoxFace, Body: FoxBody, mouthY: -0.2, mouthLift: 0.0 },
   panda: { Head: PandaHead, Face: PandaFace, Body: PandaBody, limbColor: (c) => c.accent },
   dragon: { Head: DragonHead, Face: DragonFace, Body: DragonBody, mouthY: -0.22, mouthLift: 0.0 },
+  axolotl: { Head: AxolotlHead, Body: AxolotlBody },
+  penguin: {
+    Head: PenguinHead,
+    Face: PenguinFace,
+    Body: PenguinBody,
+    mouthY: -0.24,
+    limbColor: (c) => c.body,
+    footColor: (c) => c.accent,
+  },
+  owl: { Head: OwlHead, Face: OwlFace, Body: OwlBody, mouthY: -0.22, footColor: () => '#f4a259' },
+  turtle: { Head: TurtleHead, Body: TurtleBody },
+  sparky: { Head: SparkyHead, Face: SparkyFace, Body: SparkyBody },
 };
 
 // --- Shared chibi body -----------------------------------------------------------
@@ -624,6 +1011,8 @@ export function PetModel({ species, ...props }: PetModelProps & { species: Speci
   const headScale = baby ? 1.06 : 1;
   const bodyScale = baby ? 0.86 : stage === 'adult' || stage === 'senior' ? 1.06 : 1;
   const limb = cfg.limbColor?.(c) ?? c.body;
+  const foot = cfg.footColor?.(c) ?? limb;
+  const detailed = getMaterialQuality() === 'plush';
   const parts: PartProps = { c, stage, motion, liveliness };
 
   useFrame(() => {
@@ -656,13 +1045,29 @@ export function PetModel({ species, ...props }: PetModelProps & { species: Speci
           />
         ))}
         {([-1, 1] as const).map((s) => (
-          <mesh
-            key={`foot${s}`}
-            geometry={GEO.sphere}
-            material={toon(limb)}
-            position={[s * 0.17, -0.34, 0.1]}
-            scale={[0.12, 0.08, 0.15]}
-          />
+          <group key={`foot${s}`} position={[s * 0.17, -0.34, 0.1]}>
+            <mesh geometry={GEO.sphere} material={toon(foot)} scale={[0.12, 0.08, 0.15]} />
+            {detailed && !cfg.footColor && (
+              // Toe beans
+              <>
+                <mesh
+                  geometry={GEO.sphereLow}
+                  material={toon(c.pink)}
+                  position={[0, -0.005, 0.135]}
+                  scale={[0.045, 0.03, 0.02]}
+                />
+                {[-0.045, 0, 0.045].map((x) => (
+                  <mesh
+                    key={x}
+                    geometry={GEO.sphereLow}
+                    material={toon(c.pink)}
+                    position={[x, 0.035, 0.12]}
+                    scale={[0.018, 0.016, 0.012]}
+                  />
+                ))}
+              </>
+            )}
+          </group>
         ))}
         {cfg.Body && <cfg.Body {...parts} />}
       </group>
@@ -680,6 +1085,7 @@ export function PetModel({ species, ...props }: PetModelProps & { species: Speci
           face={face}
           reaction={reaction}
           blush={c.pink}
+          {...(detailed ? { iris: IRIS[species] } : {})}
           {...(cfg.mouthY !== undefined ? { mouthY: cfg.mouthY } : {})}
           {...(cfg.mouthLift !== undefined ? { mouthLift: cfg.mouthLift } : {})}
         />

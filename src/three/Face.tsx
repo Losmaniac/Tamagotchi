@@ -4,7 +4,7 @@ import type { Group } from 'three';
 import type { Mood } from '../game/status';
 import { reactionProgress, type ReactionState } from './anim';
 import { GEO } from './geometry';
-import { flat } from './materials';
+import { flat, gloss } from './materials';
 
 export type EyeKind = 'open' | 'happy' | 'closed' | 'half';
 export type MouthKind = 'smile' | 'open' | 'frown' | 'flat' | 'pout';
@@ -56,7 +56,7 @@ const INK = '#2b1a3d';
 const EYE_X = 0.2;
 const EYE_Y = 0.02;
 
-function Eye({ kind, side }: { kind: EyeKind; side: -1 | 1 }) {
+function Eye({ kind, side, iris }: { kind: EyeKind; side: -1 | 1; iris?: string }) {
   const pos = onHead(side * EYE_X, EYE_Y, 0.005);
   const rotY = Math.asin((side * EYE_X) / HEAD_R) * 0.9;
   const ink = flat(INK);
@@ -64,17 +64,40 @@ function Eye({ kind, side }: { kind: EyeKind; side: -1 | 1 }) {
     <group position={pos} rotation={[0, rotY, 0]}>
       {kind === 'open' && (
         <>
-          <mesh geometry={GEO.sphere} material={ink} scale={[0.085, 0.11, 0.04]} />
+          {iris ? (
+            <>
+              {/* Detailed eye: coloured iris ring, glossy pupil, sparkly highlights. */}
+              <mesh
+                geometry={GEO.sphere}
+                material={gloss('#241536')}
+                scale={[0.088, 0.112, 0.04]}
+              />
+              <mesh
+                geometry={GEO.sphere}
+                material={gloss(iris)}
+                position={[0, -0.012, 0.012]}
+                scale={[0.07, 0.085, 0.035]}
+              />
+              <mesh
+                geometry={GEO.sphere}
+                material={gloss('#120a1c')}
+                position={[0, -0.006, 0.022]}
+                scale={[0.042, 0.055, 0.03]}
+              />
+            </>
+          ) : (
+            <mesh geometry={GEO.sphere} material={ink} scale={[0.085, 0.11, 0.04]} />
+          )}
           <mesh
             geometry={GEO.sphereLow}
             material={flat('#ffffff')}
-            position={[-0.028 * side, 0.04, 0.035]}
+            position={[-0.028 * side, 0.04, 0.05]}
             scale={0.03}
           />
           <mesh
             geometry={GEO.sphereLow}
             material={flat('#ffffff')}
-            position={[0.025 * side, -0.035, 0.035]}
+            position={[0.025 * side, -0.035, 0.05]}
             scale={0.015}
           />
         </>
@@ -199,6 +222,8 @@ interface FaceProps {
   mouthY?: number;
   mouthLift?: number;
   browColor?: string;
+  /** Coloured iris (detailed look); plain dark eyes when omitted. */
+  iris?: string;
 }
 
 /**
@@ -212,6 +237,7 @@ export function Face({
   mouthY = -0.17,
   mouthLift = 0.01,
   browColor = INK,
+  iris,
 }: FaceProps) {
   const eyesRef = useRef<Group>(null);
   const baseEyes = useRef<Group>(null);
@@ -257,8 +283,8 @@ export function Face({
       <group ref={eyesRef} position={[0, EYE_Y, 0]}>
         <group position={[0, -EYE_Y, 0]}>
           <group ref={baseEyes}>
-            <Eye kind={face.eyes} side={-1} />
-            <Eye kind={face.eyes} side={1} />
+            <Eye kind={face.eyes} side={-1} {...(iris ? { iris } : {})} />
+            <Eye kind={face.eyes} side={1} {...(iris ? { iris } : {})} />
           </group>
           <group ref={happyEyes} visible={false}>
             <Eye kind="happy" side={-1} />

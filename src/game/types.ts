@@ -1,6 +1,18 @@
 // Core game types. Pure TS: no framework imports.
 
-export const SPECIES = ['cat', 'dog', 'bunny', 'fox', 'panda', 'dragon'] as const;
+export const SPECIES = [
+  'cat',
+  'dog',
+  'bunny',
+  'fox',
+  'panda',
+  'dragon',
+  'axolotl',
+  'penguin',
+  'owl',
+  'turtle',
+  'sparky',
+] as const;
 export type Species = (typeof SPECIES)[number];
 
 export const COLOR_VARIANTS = [0, 1, 2] as const;

@@ -66,9 +66,12 @@ export default function Gallery() {
           </button>
         ))}
       </div>
-      <PetCanvas className="flex-1" cameraZ={9}>
+      <PetCanvas className="flex-1" lowPower={params.has('low')} cameraZ={13}>
         {SPECIES.map((species, i) => (
-          <group key={species} position={[((i % 3) - 1) * 1.7, i < 3 ? 1.2 : -0.9, 0]}>
+          <group
+            key={species}
+            position={[((i % 4) - 1.5) * 1.65, 2.1 - Math.floor(i / 4) * 2.05, 0]}
+          >
             <PetStage
               look={{ species, color, stage, form }}
               mood={mood}

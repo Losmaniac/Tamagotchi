@@ -1,7 +1,7 @@
 {
   "name": "pocket-pals",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "Pocket Pals \u2014 a colorful 3D Tamagotchi-style PWA",
   "scripts": {

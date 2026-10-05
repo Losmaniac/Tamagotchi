@@ -149,6 +149,20 @@ const VOICES: Record<string, Tone[]> = {
   fox: [{ freq: 700, to: 1200, dur: 0.14, type: 'triangle', gain: 0.3 }],
   panda: [{ freq: 220, to: 260, dur: 0.3, type: 'sine', gain: 0.4 }],
   dragon: [{ freq: 160, to: 110, dur: 0.35, type: 'sawtooth', gain: 0.18 }],
+  axolotl: [
+    { freq: 900, to: 1300, dur: 0.08, type: 'sine', gain: 0.3 },
+    { freq: 700, to: 1100, dur: 0.08, type: 'sine', gain: 0.25, delay: 0.1 },
+  ],
+  penguin: [{ freq: 330, to: 260, dur: 0.22, type: 'square', gain: 0.18 }],
+  owl: [
+    { freq: 440, to: 400, dur: 0.25, type: 'sine', gain: 0.35 },
+    { freq: 400, to: 360, dur: 0.35, type: 'sine', gain: 0.35, delay: 0.32 },
+  ],
+  turtle: [{ freq: 180, to: 200, dur: 0.4, type: 'triangle', gain: 0.35 }],
+  sparky: [
+    { freq: 600, to: 1800, dur: 0.12, type: 'sawtooth', gain: 0.12 },
+    { freq: 1800, to: 900, dur: 0.1, type: 'square', gain: 0.1, delay: 0.12 },
+  ],
 };
 
 export function voice(species: string): void {
