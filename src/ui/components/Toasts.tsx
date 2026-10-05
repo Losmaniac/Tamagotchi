@@ -17,7 +17,11 @@ function feedbackKey(f: Feedback, lightsOn: boolean): StringKey | null {
           ? 'outcome.full'
           : null;
     case 'snack':
-      return f.outcome === 'gotSick' ? 'outcome.gotSick' : null;
+      return f.outcome === 'gotSick'
+        ? 'outcome.gotSick'
+        : f.outcome === 'favorite'
+          ? 'outcome.favorite'
+          : null;
     case 'clean':
       return f.outcome === 'ok' ? 'outcome.cleaned' : null;
     case 'lights':

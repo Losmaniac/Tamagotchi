@@ -28,10 +28,12 @@ function EggBanner({ pet }: { pet: Pet }) {
 /** One prioritised message: critical > sick > tantrum > needs > sleeping. */
 export function StatusBanner({ pet, onAction }: { pet: Pet; onAction: (a: PetAction) => void }) {
   const { t } = useT();
+  const now = useNow(60_000);
   if (pet.dead) return null;
   if (pet.stage === 'egg') return <EggBanner pet={pet} />;
   const name = pet.name;
   const calls = activeCallKinds(pet);
+  const gentle = now < (pet.gentleUntil ?? 0);
   let banner: Banner | null = null;
 
   if (isCritical(pet)) banner = { tone: 'danger', text: t('status.critical', { name }) };
@@ -44,7 +46,11 @@ export function StatusBanner({ pet, onAction }: { pet: Pet; onAction: (a: PetAct
     };
   else if (calls.length > 0) {
     const c = calls[0]!;
-    banner = { tone: 'warn', text: t(`need.${c}`, { name }) };
+    // During the gentle start the pet explains which button helps.
+    banner = {
+      tone: 'warn',
+      text: gentle ? `${name}: ${t(`hint.${c}`)}` : t(`need.${c}`, { name }),
+    };
   } else if (pet.asleep)
     banner = {
       tone: 'calm',
@@ -52,6 +58,7 @@ export function StatusBanner({ pet, onAction }: { pet: Pet; onAction: (a: PetAct
       action: { label: t('action.wake'), run: 'wake' },
     };
 
+  if (!banner && gentle) banner = { tone: 'info', text: t('hint.gentle') };
   if (!banner) return <div className="h-2" />;
   const tones = {
     danger: 'bg-rose-600 text-white',

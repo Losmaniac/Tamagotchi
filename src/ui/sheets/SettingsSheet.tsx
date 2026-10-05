@@ -2,6 +2,7 @@ import { useRef, useState, type ReactNode } from 'react';
 import { formatClock, parseClock } from '../../game/sleep';
 import { useT } from '../../i18n/useT';
 import { useAppStore } from '../../store/useAppStore';
+import { clearPhotos } from '../album';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { Sheet } from '../components/Sheet';
 import { Toggle } from '../components/Toggle';
@@ -69,6 +70,18 @@ export function SettingsSheet({ onClose, onOpen, installSlot }: SettingsSheetPro
           label={`🔊 ${t('settings.sound')}`}
           checked={settings.sound}
           onChange={(v) => update({ sound: v })}
+        />
+        <Toggle
+          label={`🎵 ${t('settings.music')}`}
+          description={t('settings.musicDesc')}
+          checked={settings.music}
+          onChange={(v) => update({ music: v })}
+        />
+        <Toggle
+          label={`🔤 ${t('settings.bilingual')}`}
+          description={t('settings.bilingualDesc')}
+          checked={settings.bilingual}
+          onChange={(v) => update({ bilingual: v })}
         />
         <Toggle
           label={`📳 ${t('settings.haptics')}`}
@@ -183,6 +196,7 @@ export function SettingsSheet({ onClose, onOpen, installSlot }: SettingsSheetPro
                 onClick={() => {
                   if (resetStep === 1) return setResetStep(2);
                   resetGame();
+                  void clearPhotos();
                   onClose();
                 }}
                 className="min-h-12 rounded-xl bg-rose-600 font-bold text-white"

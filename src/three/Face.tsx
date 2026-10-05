@@ -216,6 +216,7 @@ export function Face({
   const eyesRef = useRef<Group>(null);
   const baseEyes = useRef<Group>(null);
   const happyEyes = useRef<Group>(null);
+  const closedEyes = useRef<Group>(null);
   const baseMouth = useRef<Group>(null);
   const chompMouth = useRef<Group>(null);
   const nextBlink = useRef(-1);
@@ -225,19 +226,21 @@ export function Face({
     const r = reaction.current;
     const p = r ? reactionProgress(r, t) : null;
     const chomping = p !== null && (r?.kind === 'eat' || r?.kind === 'snack');
+    const yawning = p !== null && r?.kind === 'yawn';
     const squint =
       p !== null &&
       (r?.kind === 'stroke' || r?.kind === 'hop' || r?.kind === 'play' || r?.kind === 'evolve');
 
     if (baseMouth.current && chompMouth.current) {
-      const open = chomping && Math.floor(t * 9) % 2 === 0;
+      const open = yawning ? p! > 0.15 && p! < 0.8 : chomping && Math.floor(t * 9) % 2 === 0;
       baseMouth.current.visible = !open;
       chompMouth.current.visible = open;
     }
-    if (baseEyes.current && happyEyes.current) {
+    if (baseEyes.current && happyEyes.current && closedEyes.current) {
       const showHappy = squint && face.eyes !== 'closed';
-      baseEyes.current.visible = !showHappy;
-      happyEyes.current.visible = showHappy;
+      baseEyes.current.visible = !showHappy && !yawning;
+      happyEyes.current.visible = showHappy && !yawning;
+      closedEyes.current.visible = yawning;
     }
     // Blink (only for open eyes).
     if (nextBlink.current < 0) nextBlink.current = t + 1 + Math.random() * 3;
@@ -260,6 +263,10 @@ export function Face({
           <group ref={happyEyes} visible={false}>
             <Eye kind="happy" side={-1} />
             <Eye kind="happy" side={1} />
+          </group>
+          <group ref={closedEyes} visible={false}>
+            <Eye kind="closed" side={-1} />
+            <Eye kind="closed" side={1} />
           </group>
         </group>
       </group>

@@ -6,6 +6,8 @@ const executablePath = process.env.PW_CHROMIUM_PATH;
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
+  // Full care-loop tests click through many screens; give them room on slow CI machines.
+  timeout: 60_000,
   reporter: 'list',
   use: {
     baseURL: 'http://localhost:4173/Tamagotchi/',

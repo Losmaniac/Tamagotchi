@@ -122,6 +122,7 @@ export const sfx = {
   perfect: seq([{ freq: 1047, dur: 0.1, type: 'triangle', gain: 0.4 }]),
   good: seq([{ freq: 784, dur: 0.08, type: 'triangle', gain: 0.35 }]),
   miss: seq([{ freq: 160, dur: 0.12, type: 'sawtooth', gain: 0.2 }]),
+  yawn: seq([{ freq: 520, to: 260, dur: 0.7, type: 'sine', gain: 0.25 }]),
   sad: seq([
     { freq: 440, to: 392, dur: 0.3, type: 'sine', gain: 0.35 },
     { freq: 349, to: 330, dur: 0.5, type: 'sine', gain: 0.35, delay: 0.3 },
@@ -129,3 +130,68 @@ export const sfx = {
 };
 
 export type SfxName = keyof typeof sfx;
+
+// --- Species voices ------------------------------------------------------------------------
+
+const VOICES: Record<string, Tone[]> = {
+  cat: [
+    { freq: 620, to: 880, dur: 0.12, type: 'sine', gain: 0.35 },
+    { freq: 880, to: 520, dur: 0.22, type: 'sine', gain: 0.35, delay: 0.11 },
+  ],
+  dog: [
+    { freq: 300, to: 180, dur: 0.1, type: 'square', gain: 0.22 },
+    { freq: 320, to: 190, dur: 0.12, type: 'square', gain: 0.22, delay: 0.16 },
+  ],
+  bunny: [
+    { freq: 1400, to: 1900, dur: 0.06, type: 'sine', gain: 0.25 },
+    { freq: 1500, to: 2000, dur: 0.06, type: 'sine', gain: 0.25, delay: 0.09 },
+  ],
+  fox: [{ freq: 700, to: 1200, dur: 0.14, type: 'triangle', gain: 0.3 }],
+  panda: [{ freq: 220, to: 260, dur: 0.3, type: 'sine', gain: 0.4 }],
+  dragon: [{ freq: 160, to: 110, dur: 0.35, type: 'sawtooth', gain: 0.18 }],
+};
+
+export function voice(species: string): void {
+  (VOICES[species] ?? VOICES.cat!).forEach(tone);
+}
+
+// --- Generative background music -------------------------------------------------------------
+
+const PENTATONIC = [0, 2, 4, 7, 9, 12, 14, 16];
+let musicTimer: number | null = null;
+let step = 0;
+let note = 3;
+
+/** Soft pentatonic random walk; slower and lower at night. */
+export function startMusic(isNight: () => boolean): void {
+  if (musicTimer !== null) return;
+  const tick = () => {
+    const night = isNight();
+    const root = night ? 196 : 262; // G3 at night, C4 by day
+    const c = ctx;
+    if (enabled && c && c.state === 'running') {
+      note = Math.max(
+        0,
+        Math.min(PENTATONIC.length - 1, note + Math.round((Math.random() - 0.5) * 3)),
+      );
+      if (Math.random() < 0.7) {
+        tone({
+          freq: root * 2 ** (PENTATONIC[note]! / 12),
+          dur: night ? 1.1 : 0.6,
+          type: 'triangle',
+          gain: 0.07,
+        });
+      }
+      if (step % 4 === 0)
+        tone({ freq: root / 2, dur: night ? 2.2 : 1.4, type: 'sine', gain: 0.06 });
+    }
+    step++;
+    musicTimer = window.setTimeout(tick, night ? 750 : 420);
+  };
+  tick();
+}
+
+export function stopMusic(): void {
+  if (musicTimer !== null) window.clearTimeout(musicTimer);
+  musicTimer = null;
+}

@@ -246,6 +246,13 @@ export function PetStage({
         case 'clean':
           rotY += Math.sin(p * Math.PI * 4) * 0.25 * fade * m;
           break;
+        case 'yawn': {
+          const st = Math.sin(p * Math.PI);
+          sy *= 1 + st * 0.07 * m;
+          sx *= 1 - st * 0.03 * m;
+          rotZ += st * 0.06 * m;
+          break;
+        }
         case 'evolve':
           rotY += p * Math.PI * 2 * (m > 0.5 ? 1 : 0);
           y += Math.sin(p * Math.PI) * 0.3 * m;

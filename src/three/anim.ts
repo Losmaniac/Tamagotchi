@@ -13,7 +13,8 @@ export type ReactionKind =
   | 'medicine'
   | 'scold'
   | 'refuse'
-  | 'evolve';
+  | 'evolve'
+  | 'yawn';
 
 /** Bump `id` to (re)trigger a reaction animation. */
 export interface Reaction {
@@ -39,6 +40,7 @@ export const REACTION_DURATION: Record<ReactionKind, number> = {
   scold: 0.8,
   refuse: 0.8,
   evolve: 1.6,
+  yawn: 1.8,
 };
 
 export function reactionProgress(r: ReactionState, now: number): number | null {

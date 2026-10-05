@@ -12,6 +12,7 @@ const GAMES = {
   snackCatch: lazy(withChunkReload(() => import('./SnackCatch'))),
   rhythmTap: lazy(withChunkReload(() => import('./RhythmTap'))),
   leftRight: lazy(withChunkReload(() => import('./LeftRight'))),
+  wordSnack: lazy(withChunkReload(() => import('./WordSnack'))),
 };
 
 type Phase =

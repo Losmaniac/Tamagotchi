@@ -124,3 +124,41 @@
     animation-duration: 4s;
   }
 }
+
+@keyframes fall {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate(40px, 110vh) rotate(260deg);
+    opacity: 0;
+  }
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.anim-fall {
+  animation: fall 12s linear infinite;
+}
+.anim-twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-fall {
+    display: none;
+  }
+  .anim-twinkle {
+    animation: none;
+    opacity: 0.6;
+  }
+}

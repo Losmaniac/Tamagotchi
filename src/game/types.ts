@@ -90,6 +90,12 @@ export interface Pet {
   /** Simulated up to this timestamp. */
   lastTickAt: number;
 
+  /** First pet: needs drain slower until `gentleUntil` (set on hatching). */
+  beginner: boolean;
+  gentleUntil: number;
+  /** Time spent asleep at night with the lights on (reset at bedtime). */
+  nightLightsOnMs: number;
+
   dead: boolean;
   deathCause: DeathCause | null;
   diedAt: number | null;
@@ -143,4 +149,6 @@ export type SimEvent =
   | { type: 'actIgnored'; t: number }
   | { type: 'perfectDay'; t: number }
   | { type: 'coins'; t: number; amount: number }
+  | { type: 'birthday'; t: number; days: number }
+  | { type: 'wellRested'; t: number }
   | { type: 'died'; t: number; cause: DeathCause };

@@ -5,6 +5,7 @@ import {
   CLEAN_HYGIENE,
   EGG_WARM_MAX,
   EGG_WARM_PER_TAP,
+  FAVORITE_FOOD_HAPPINESS,
   FULL_THRESHOLD,
   MEAL_HUNGER,
   MEDICINE_NOT_SICK_HAPPINESS,
@@ -27,6 +28,7 @@ import {
   UNFAIR_SCOLD_HAPPINESS,
   WAKE_HAPPINESS_PENALTY,
 } from './constants';
+import { FAVORITE_FOOD, getSnack, type SnackId } from './food';
 import { addStat, clonePet, withRng } from './pet';
 import { makeSick } from './sickness';
 import { fallAsleep, wakeUp } from './simulation';
@@ -45,6 +47,7 @@ export type ActionOutcome =
   | 'unfair'
   | 'awake'
   | 'tired'
+  | 'favorite'
   | 'cured';
 
 export interface ActionResult {
@@ -80,10 +83,13 @@ export function feedMeal(input: Pet, _now: number): ActionResult {
   });
 }
 
-export function feedSnack(input: Pet, now: number): ActionResult {
+export function feedSnack(input: Pet, now: number, food: SnackId = 'cookie'): ActionResult {
   return run(input, ['hatched', 'awake'], (pet, events) => {
+    const snack = getSnack(food) ?? { happiness: SNACK_HAPPINESS, health: 0 };
+    const favorite = FAVORITE_FOOD[pet.species] === food;
     addStat(pet, 'hunger', SNACK_HUNGER);
-    addStat(pet, 'happiness', SNACK_HAPPINESS);
+    addStat(pet, 'happiness', snack.happiness + (favorite ? FAVORITE_FOOD_HAPPINESS : 0));
+    addStat(pet, 'health', snack.health);
     pet.snackTimes = [...pet.snackTimes.filter((t) => now - t < OVERFEED_WINDOW), now].slice(
       -SNACK_HISTORY_LIMIT,
     );
@@ -95,7 +101,7 @@ export function feedSnack(input: Pet, now: number): ActionResult {
       });
       if (sick) return 'gotSick';
     }
-    return 'ok';
+    return favorite ? 'favorite' : 'ok';
   });
 }
 

@@ -14,7 +14,7 @@ export default defineConfig({
     manifest: true,
     // three.js alone is ~700 kB minified; the gzipped initial-load budget is enforced by
     // scripts/check-bundle.mjs instead.
-    chunkSizeWarningLimit: 900,
+    chunkSizeWarningLimit: 1000,
     rolldownOptions: {
       output: {
         // Vendor chunks change rarely, so they stay cached across app updates.

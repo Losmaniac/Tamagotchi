@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
 import { isCritical, moodOf, stageProgress } from '../game/status';
 import type { Pet } from '../game/types';
@@ -7,7 +7,11 @@ import { useT } from '../i18n/useT';
 import { useAppStore, type PetAction } from '../store/useAppStore';
 import type { Equipped } from '../three/anim';
 import { ParticleLayer, useParticleSystem } from '../three/Particles';
-import { PetCanvas } from '../three/PetCanvas';
+import { PetCanvas, type CaptureFn } from '../three/PetCanvas';
+import { localMinutes } from '../game/sleep';
+import { isNearBedtime, seasonOf, skyPhase } from '../game/world';
+import { SpeechBubble } from './components/Joy';
+import { SeasonLayer } from './components/SeasonLayer';
 import { PetStage } from '../three/PetStage';
 import { useNow, usePageVisible, useReducedMotion } from './hooks';
 
@@ -21,10 +25,20 @@ interface PetViewProps {
   /** 'top' frames the pet in the upper part of the screen (shop preview). */
   framing?: 'center' | 'top';
   onAction: (a: PetAction) => void;
+  onCaptureReady?: (fn: CaptureFn | null) => void;
 }
 
 /** The 3D pet with petting gestures and lights / critical overlays. */
-export function PetView({ pet, inventory, paused, framing = 'center', onAction }: PetViewProps) {
+let yawnId = 1_000_000;
+
+export function PetView({
+  pet,
+  inventory,
+  paused,
+  framing = 'center',
+  onAction,
+  onCaptureReady,
+}: PetViewProps) {
   const { t } = useT();
   const lowPower = useAppStore((s) => s.settings.lowPower);
   const reaction = useAppStore((s) => s.reaction);
@@ -54,6 +68,22 @@ export function PetView({ pet, inventory, paused, framing = 'center', onAction }
     [hat, glasses, scarf],
   );
   const mood = moodOf(pet);
+  const bedtimeStart = useAppStore((s) => s.settings.bedtime.start);
+  const minutes = localMinutes(now);
+  const phase = skyPhase(minutes);
+  const season = seasonOf(new Date(now).getMonth());
+
+  // Sleepy yawns in the half hour before bedtime.
+  const yawnable = !pet.dead && !pet.asleep && pet.stage !== 'egg';
+  useEffect(() => {
+    if (!yawnable || paused) return;
+    const id = window.setInterval(() => {
+      const s = useAppStore.getState();
+      if (isNearBedtime(localMinutes(s.now()), s.settings.bedtime.start))
+        useAppStore.setState({ reaction: { kind: 'yawn', id: ++yawnId } });
+    }, 40_000);
+    return () => window.clearInterval(id);
+  }, [yawnable, paused, bedtimeStart]);
 
   const onDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
@@ -94,7 +124,9 @@ export function PetView({ pet, inventory, paused, framing = 'center', onAction }
   const critical = isCritical(pet);
   return (
     <div className="relative min-h-0 flex-1">
+      <SeasonLayer season={season} phase={phase} enabled={!lowPower && !reduced} />
       <PetCanvas
+        onCaptureReady={onCaptureReady}
         className="absolute inset-0"
         lowPower={lowPower}
         mode={mode}
@@ -128,6 +160,7 @@ export function PetView({ pet, inventory, paused, framing = 'center', onAction }
           <span className="absolute top-10 right-24 text-3xl">🌙</span>
         </div>
       )}
+      <SpeechBubble />
       {critical && (
         <div
           className="anim-pulse pointer-events-none absolute inset-0 rounded-3xl"
