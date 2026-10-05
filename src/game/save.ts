@@ -1,6 +1,10 @@
 // Persisted save shape, defaults, migrations and import validation. Pure TS.
 
-import { DEFAULT_BEDTIME, START_COINS } from './constants';
+import { createBank, type Bank } from './bank';
+import { BANK_HISTORY_LIMIT, DEFAULT_BEDTIME, DIARY_DAYS, START_COINS } from './constants';
+import type { DiaryDay } from './diary';
+import type { FactsSeen } from './facts';
+import { isSnackId, type SnackId } from './food';
 import { isItemId, ITEM_SLOTS, type Inventory } from './shop';
 import {
   CARE_STATS,
@@ -11,13 +15,14 @@ import {
   type LogEntry,
   type MemorialEntry,
   type Pet,
+  type Species,
 } from './types';
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 export const STORAGE_KEY = 'pocketpals:v1';
 
 export type Locale = 'en' | 'cs';
-export const MINIGAME_IDS = ['snackCatch', 'rhythmTap', 'leftRight'] as const;
+export const MINIGAME_IDS = ['snackCatch', 'rhythmTap', 'leftRight', 'wordSnack'] as const;
 export type MinigameId = (typeof MINIGAME_IDS)[number];
 
 export interface Settings {
@@ -27,6 +32,10 @@ export interface Settings {
   lowPower: boolean;
   bedtime: Bedtime;
   installHintDismissed: boolean;
+  /** Soft generated background music (off by default). */
+  music: boolean;
+  /** Pet speaks words in the other language too. */
+  bilingual: boolean;
 }
 
 export interface Progress {
@@ -42,6 +51,11 @@ export interface Progress {
   streak: number;
   lastOpenDay: string | null;
   purchases: number;
+  /** Encyclopedia: learned facts (bitmask per species). */
+  factsSeen: FactsSeen;
+  /** Favourite snacks discovered per species. */
+  favorites: Partial<Record<Species, SnackId>>;
+  lastQuizDay: string | null;
 }
 
 export interface GameState {
@@ -52,6 +66,8 @@ export interface GameState {
   achievements: Partial<Record<string, number>>;
   inventory: Inventory;
   progress: Progress;
+  bank: Bank;
+  diary: DiaryDay[];
 }
 
 export interface SaveData {
@@ -68,6 +84,8 @@ export function createDefaultSettings(locale: Locale): Settings {
     lowPower: false,
     bedtime: { ...DEFAULT_BEDTIME },
     installHintDismissed: false,
+    music: false,
+    bilingual: false,
   };
 }
 
@@ -91,7 +109,12 @@ export function createDefaultGame(): GameState {
       streak: 0,
       lastOpenDay: null,
       purchases: 0,
+      factsSeen: {},
+      favorites: {},
+      lastQuizDay: null,
     },
+    bank: createBank(),
+    diary: [],
   };
 }
 
@@ -112,6 +135,13 @@ type Migration = (data: Obj) => Obj;
  */
 const migrations: Record<number, Migration> = {
   0: (data) => ({ ...data, schemaVersion: 1 }),
+  // v2: gentle start, bedtime lights tracking (pet); bank, diary, facts (game); music/bilingual.
+  1: (data) => {
+    const game = isObj(data.game) ? { ...data.game } : {};
+    if (isObj(game.pet))
+      game.pet = { beginner: false, gentleUntil: 0, nightLightsOnMs: 0, ...game.pet };
+    return { ...data, game, schemaVersion: 2 };
+  },
 };
 
 const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -143,6 +173,8 @@ export function isValidPet(v: unknown): v is Pet {
     isNum(v.stageDuration) &&
     isNum(v.lastTickAt) &&
     isNum(v.rng) &&
+    isNum(v.gentleUntil) &&
+    isNum(v.nightLightsOnMs) &&
     typeof v.dead === 'boolean' &&
     isObj(v.stageRecord) &&
     isObj(v.calls) &&
@@ -159,11 +191,47 @@ function sanitizeSettings(raw: unknown, fallback: Settings): Settings {
     sound: bool(s.sound, fallback.sound),
     haptics: bool(s.haptics, fallback.haptics),
     lowPower: bool(s.lowPower, fallback.lowPower),
+    music: bool(s.music, fallback.music),
+    bilingual: bool(s.bilingual, fallback.bilingual),
     installHintDismissed: bool(s.installHintDismissed, fallback.installHintDismissed),
     bedtime: {
       start: isMinutes(bed.start) ? bed.start : fallback.bedtime.start,
       end: isMinutes(bed.end) ? bed.end : fallback.bedtime.end,
     },
+  };
+}
+
+function sanitizeFacts(raw: unknown): FactsSeen {
+  const out: FactsSeen = {};
+  if (!isObj(raw)) return out;
+  for (const sp of SPECIES) {
+    const v = raw[sp];
+    if (isNum(v) && v >= 0) out[sp] = Math.floor(v);
+  }
+  return out;
+}
+
+function sanitizeFavorites(raw: unknown): Partial<Record<Species, SnackId>> {
+  const out: Partial<Record<Species, SnackId>> = {};
+  if (!isObj(raw)) return out;
+  for (const sp of SPECIES) {
+    const v = raw[sp];
+    if (isSnackId(v)) out[sp] = v;
+  }
+  return out;
+}
+
+function sanitizeBank(raw: unknown): Bank {
+  if (!isObj(raw)) return createBank();
+  const history = Array.isArray(raw.history)
+    ? raw.history.filter(
+        (h): h is { t: number; balance: number } => isObj(h) && isNum(h.t) && isNum(h.balance),
+      )
+    : [];
+  return {
+    balance: Math.max(0, Math.floor(num(raw.balance, 0))),
+    periodStart: num(raw.periodStart, 0),
+    history: history.slice(-BANK_HISTORY_LIMIT),
   };
 }
 
@@ -211,7 +279,18 @@ function sanitizeGame(raw: unknown): GameState {
       streak: num(p.streak, 0),
       lastOpenDay: typeof p.lastOpenDay === 'string' ? p.lastOpenDay : null,
       purchases: num(p.purchases, 0),
+      factsSeen: sanitizeFacts(p.factsSeen),
+      favorites: sanitizeFavorites(p.favorites),
+      lastQuizDay: typeof p.lastQuizDay === 'string' ? p.lastQuizDay : null,
     },
+    bank: sanitizeBank(g.bank),
+    diary: Array.isArray(g.diary)
+      ? (
+          g.diary.filter(
+            (d) => isObj(d) && typeof d.day === 'string' && isObj(d.care),
+          ) as DiaryDay[]
+        ).slice(-DIARY_DAYS)
+      : [],
   };
 }
 

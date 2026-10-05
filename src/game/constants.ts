@@ -115,3 +115,35 @@ export const START_COINS = 30; // enough for one cheap cosmetic right away
 export const LOG_LIMIT = 50;
 export const MEMORIAL_LIMIT = 40;
 export const SNACK_HISTORY_LIMIT = 8;
+
+// --- Gentle start (first pet only) ----------------------------------------------------------
+export const BEGINNER_DURATION = 2 * DAY;
+/** Needs drain at this fraction of the normal rate during the gentle start. */
+export const BEGINNER_DECAY_FACTOR = 0.5;
+
+// --- Joy ------------------------------------------------------------------------------------
+/** Birthday gifts by age in days. */
+export const BIRTHDAY_COINS: Record<number, number> = { 1: 10, 7: 25, 14: 40, 30: 60 };
+export const WELCOME_BACK_AWAY = 2 * HOUR;
+export const FAVORITE_FOOD_HAPPINESS = 12;
+
+// --- Healthy habits ---------------------------------------------------------------------------
+/** Lights on for at most this long during the night still counts as a good night's sleep. */
+export const WELL_RESTED_MAX_LIGHTS = 15 * MINUTE;
+export const WELL_RESTED_HAPPINESS = 6;
+/** Suggest a screen break after this much continuous play. */
+export const BREAK_REMINDER = 30 * MINUTE;
+
+// --- Piggy bank -------------------------------------------------------------------------------
+export const BANK_PERIOD = 3 * DAY;
+export const BANK_RATE = 0.05; // 5 % per period, compounding
+export const BANK_HISTORY_LIMIT = 30;
+
+// --- Encyclopedia ------------------------------------------------------------------------------
+export const FACTS_PER_SPECIES = 8;
+export const QUIZ_QUESTIONS = 5;
+export const QUIZ_COINS_PER_CORRECT = 3;
+export const QUIZ_MIN_FACTS = 3;
+
+// --- Diary --------------------------------------------------------------------------------------
+export const DIARY_DAYS = 14;

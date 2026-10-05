@@ -1,6 +1,18 @@
 // Core game types. Pure TS: no framework imports.
 
-export const SPECIES = ['cat', 'dog', 'bunny', 'fox', 'panda', 'dragon'] as const;
+export const SPECIES = [
+  'cat',
+  'dog',
+  'bunny',
+  'fox',
+  'panda',
+  'dragon',
+  'axolotl',
+  'penguin',
+  'owl',
+  'turtle',
+  'sparky',
+] as const;
 export type Species = (typeof SPECIES)[number];
 
 export const COLOR_VARIANTS = [0, 1, 2] as const;
@@ -90,6 +102,12 @@ export interface Pet {
   /** Simulated up to this timestamp. */
   lastTickAt: number;
 
+  /** First pet: needs drain slower until `gentleUntil` (set on hatching). */
+  beginner: boolean;
+  gentleUntil: number;
+  /** Time spent asleep at night with the lights on (reset at bedtime). */
+  nightLightsOnMs: number;
+
   dead: boolean;
   deathCause: DeathCause | null;
   diedAt: number | null;
@@ -143,4 +161,6 @@ export type SimEvent =
   | { type: 'actIgnored'; t: number }
   | { type: 'perfectDay'; t: number }
   | { type: 'coins'; t: number; amount: number }
+  | { type: 'birthday'; t: number; days: number }
+  | { type: 'wellRested'; t: number }
   | { type: 'died'; t: number; cause: DeathCause };

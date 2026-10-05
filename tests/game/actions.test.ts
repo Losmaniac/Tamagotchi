@@ -42,7 +42,7 @@ describe('feeding', () => {
   it('snacks add fullness and happiness', () => {
     const r = feedSnack(baby(MORNING, 1, { stats: { ...half } }), MORNING);
     expect(r.pet.stats.hunger).toBe(60);
-    expect(r.pet.stats.happiness).toBe(58);
+    expect(r.pet.stats.happiness).toBe(60); // default snack: cookie (+10)
     expect(r.pet.snackTimes).toEqual([MORNING]);
   });
 

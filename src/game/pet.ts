@@ -17,13 +17,23 @@ export interface NewEggOptions {
   color: ColorVariant;
   now: number;
   seed: number;
+  /** First pet ever: gentler needs for the first two days. */
+  beginner?: boolean;
 }
 
 export function sanitizeName(name: string): string {
   return Array.from(name.trim()).slice(0, NAME_MAX_LENGTH).join('');
 }
 
-export function createEgg({ id, name, species, color, now, seed }: NewEggOptions): Pet {
+export function createEgg({
+  id,
+  name,
+  species,
+  color,
+  now,
+  seed,
+  beginner = false,
+}: NewEggOptions): Pet {
   return {
     id,
     name: sanitizeName(name),
@@ -57,6 +67,9 @@ export function createEgg({ id, name, species, color, now, seed }: NewEggOptions
     dayMistakes: 0,
     rng: seed >>> 0,
     lastTickAt: now,
+    beginner,
+    gentleUntil: 0,
+    nightLightsOnMs: 0,
     dead: false,
     deathCause: null,
     diedAt: null,

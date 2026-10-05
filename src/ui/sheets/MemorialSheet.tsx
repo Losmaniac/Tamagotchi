@@ -7,9 +7,11 @@ import { SPECIES_ICON } from '../icons';
 export function MemorialSheet({
   entries,
   onClose,
+  onAlbum,
 }: {
   entries: MemorialEntry[];
   onClose: () => void;
+  onAlbum?: (entry: MemorialEntry) => void;
 }) {
   const { t, tp, locale } = useT();
   const date = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
@@ -34,6 +36,16 @@ export function MemorialSheet({
                   {t('memorial.lived', { time: formatDuration(m.age, tp, 'acc') })}
                 </p>
               </div>
+              {onAlbum && (
+                <button
+                  type="button"
+                  onClick={() => onAlbum(m)}
+                  className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white text-lg shadow-sm"
+                  aria-label={`${t('memorial.album')}: ${m.name}`}
+                >
+                  🖼️
+                </button>
+              )}
               <time
                 className="text-xs font-semibold text-ink/50"
                 dateTime={new Date(m.diedAt).toISOString()}

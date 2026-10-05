@@ -1,7 +1,7 @@
 import { CanvasTexture, SRGBColorSpace } from 'three';
 
 export type SpriteKind =
-  'heart' | 'sparkle' | 'bubble' | 'crumb' | 'z' | 'stink' | 'note' | 'star' | 'shadow';
+  'heart' | 'sparkle' | 'bubble' | 'crumb' | 'z' | 'stink' | 'note' | 'star' | 'shadow' | 'bolt';
 
 const cache = new Map<SpriteKind, CanvasTexture>();
 const SIZE = 64;
@@ -89,6 +89,22 @@ function draw(kind: SpriteKind, ctx: CanvasRenderingContext2D): void {
       g.addColorStop(1, 'rgba(60,30,110,0)');
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, SIZE, SIZE);
+      break;
+    }
+    case 'bolt': {
+      ctx.fillStyle = '#ffe14d';
+      ctx.strokeStyle = '#2f9df4';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(36, 4);
+      ctx.lineTo(16, 34);
+      ctx.lineTo(30, 34);
+      ctx.lineTo(24, 60);
+      ctx.lineTo(48, 26);
+      ctx.lineTo(34, 26);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
       break;
     }
     case 'note': {

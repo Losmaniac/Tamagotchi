@@ -4,6 +4,11 @@
 
 import {
   ACT_UP_CHANCE,
+  BEGINNER_DECAY_FACTOR,
+  BEGINNER_DURATION,
+  BIRTHDAY_COINS,
+  WELL_RESTED_HAPPINESS,
+  WELL_RESTED_MAX_LIGHTS,
   ACT_UP_DURATION,
   CALL_GRACE,
   DAY,
@@ -89,6 +94,7 @@ function hatch(pet: Pet, t: number, ctx: Ctx): void {
   pet.stats = { hunger: 80, happiness: 80, energy: 90, hygiene: 100, health: 100 };
   pet.poopTimer = nextPoopInterval(ctx.rng);
   pet.stageRecord = emptyStageRecord();
+  if (pet.beginner) pet.gentleUntil = t + BEGINNER_DURATION;
   ctx.events.push({ type: 'hatched', t });
 }
 
@@ -98,31 +104,41 @@ function updateSleep(pet: Pet, t: number, ctx: Ctx): void {
     if (pet.sleepReason === 'bedtime' && !bedtime) {
       wakeUp(pet, t, ctx.events);
       pet.lightsOn = true; // morning: lights come back on
+      if (pet.nightLightsOnMs <= WELL_RESTED_MAX_LIGHTS) {
+        addStat(pet, 'happiness', WELL_RESTED_HAPPINESS);
+        ctx.events.push({ type: 'wellRested', t });
+      }
     } else if (pet.sleepReason !== 'bedtime' && bedtime && t >= pet.stayAwakeUntil) {
       pet.sleepReason = 'bedtime'; // a nap rolls into the night
+      pet.nightLightsOnMs = 0;
     } else if (pet.sleepReason !== 'bedtime' && pet.stats.energy >= NAP_WAKE_ENERGY) {
       wakeUp(pet, t, ctx.events);
     }
     return;
   }
   if (pet.stats.energy <= 0) fallAsleep(pet, t, 'exhausted', ctx.events);
-  else if (bedtime && t >= pet.stayAwakeUntil) fallAsleep(pet, t, 'bedtime', ctx.events);
-  else if (!pet.lightsOn && pet.stats.energy < NAP_ENERGY_THRESHOLD)
+  else if (bedtime && t >= pet.stayAwakeUntil) {
+    fallAsleep(pet, t, 'bedtime', ctx.events);
+    pet.nightLightsOnMs = 0;
+  } else if (!pet.lightsOn && pet.stats.energy < NAP_ENERGY_THRESHOLD)
     fallAsleep(pet, t, 'nap', ctx.events);
 }
 
-function applyDecay(pet: Pet, hours: number): void {
+function applyDecay(pet: Pet, t: number, hours: number): void {
   const s = pet.stats;
   const lowCount = CARE_STATS.filter((k) => s[k] < LOW_STAT).length;
   const allGood = CARE_STATS.every((k) => s[k] >= HEALTH_REGEN_MIN_STAT);
   const rates = pet.asleep ? DECAY.asleep : DECAY.awake;
+  // Gentle start: needs drain slower (regeneration is unaffected).
+  const g = t < (pet.gentleUntil ?? 0) ? BEGINNER_DECAY_FACTOR : 1;
+  const drain = (rate: number) => (rate > 0 ? rate * g : rate);
 
-  s.hunger -= rates.hunger * hours;
-  s.energy -= rates.energy * hours;
-  s.hygiene -= rates.hygiene * hours;
+  s.hunger -= drain(rates.hunger) * hours;
+  s.energy -= drain(rates.energy) * hours;
+  s.hygiene -= drain(rates.hygiene) * hours;
   let happinessDrain = rates.happiness + pet.poops * POOP_HAPPINESS_DRAIN;
   if (pet.asleep && pet.lightsOn) happinessDrain += LIGHTS_ON_ASLEEP_HAPPINESS;
-  s.happiness -= happinessDrain * hours;
+  s.happiness -= drain(happinessDrain) * hours;
 
   let health = -lowCount * LOW_STAT_HEALTH_DRAIN;
   if (pet.sick) health -= SICK_HEALTH_DRAIN;
@@ -225,6 +241,8 @@ function updateDays(pet: Pet, t1: number, ctx: Ctx): void {
   while (pet.survivalDaysPaid < ageDays) {
     pet.survivalDaysPaid += 1;
     ctx.events.push({ type: 'coins', t: t1, amount: SURVIVAL_COINS_PER_DAY });
+    if (BIRTHDAY_COINS[pet.survivalDaysPaid] !== undefined)
+      ctx.events.push({ type: 'birthday', t: t1, days: pet.survivalDaysPaid });
     if (pet.dayMistakes === 0) ctx.events.push({ type: 'perfectDay', t: t1 });
     pet.dayMistakes = 0;
   }
@@ -264,7 +282,9 @@ export function step(pet: Pet, t: number, dt: number, ctx: Ctx): void {
 
   const hours = dt / HOUR;
   updateSleep(pet, t, ctx);
-  applyDecay(pet, hours);
+  applyDecay(pet, t, hours);
+  if (pet.asleep && pet.lightsOn && pet.sleepReason === 'bedtime')
+    pet.nightLightsOnMs = (pet.nightLightsOnMs ?? 0) + dt;
   updatePoop(pet, t, dt, ctx);
   updateSickness(pet, t, hours, ctx);
   updateActingUp(pet, t, t1, hours, ctx);

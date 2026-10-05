@@ -13,8 +13,8 @@ import {
 import { Egg } from './Egg';
 import { faceForMood } from './Face';
 import { GEO } from './geometry';
-import { flat } from './materials';
-import { mix, resolveColors, SICK_TINT } from './palette';
+import { flat, getMaterialQuality, toon } from './materials';
+import { mix, resolveColors, SICK_TINT, SPECIES_THEMES } from './palette';
 import type { ParticleSystem } from './Particles';
 import { PetModel } from './PetModel';
 import { Poops, POOP_SLOTS } from './Poop';
@@ -74,7 +74,11 @@ export function PetStage({
   );
   const reactionState = useRef<ReactionState>({ kind: null, start: 0 });
   const pose = useRef<Pose>({ droop: 0, tilt: 0 });
-  const timers = useRef({ z: 0, stink: 0, sparkle: 0 });
+  const timers = useRef<{ z: number; stink: number; sparkle: number; bolt?: number }>({
+    z: 0,
+    stink: 0,
+    sparkle: 0,
+  });
 
   const colors = useMemo(() => {
     const c = resolveColors(look.species, look.color, look.form, look.stage);
@@ -246,6 +250,13 @@ export function PetStage({
         case 'clean':
           rotY += Math.sin(p * Math.PI * 4) * 0.25 * fade * m;
           break;
+        case 'yawn': {
+          const st = Math.sin(p * Math.PI);
+          sy *= 1 + st * 0.07 * m;
+          sx *= 1 - st * 0.03 * m;
+          rotZ += st * 0.06 * m;
+          break;
+        }
         case 'evolve':
           rotY += p * Math.PI * 2 * (m > 0.5 ? 1 : 0);
           y += Math.sin(p * Math.PI) * 0.3 * m;
@@ -271,6 +282,22 @@ export function PetStage({
     // Continuous particles.
     if (particles) {
       const tm = timers.current;
+      tm.bolt = (tm.bolt ?? 0) + delta;
+      if (
+        look.species === 'sparky' &&
+        (mood === 'happy' || mood === 'content') &&
+        look.stage !== 'egg' &&
+        tm.bolt > 1.8
+      ) {
+        tm.bolt = 0;
+        particles.emit('bolt', 1, {
+          origin: [(Math.random() - 0.5) * 0.9, 1.5 * base, 0.2],
+          spread: 0.2,
+          up: 0.5,
+          size: 0.14,
+          life: 0.9,
+        });
+      }
       tm.z += delta;
       tm.stink += delta;
       tm.sparkle += delta;
@@ -347,6 +374,22 @@ export function PetStage({
         >
           <planeGeometry args={[1, 1]} />
         </mesh>
+      )}
+      {getMaterialQuality() === 'plush' && (
+        // Soft ground platform tinted from the species' background.
+        <group position={[0, -0.045, 0]}>
+          <mesh
+            geometry={GEO.disc}
+            material={toon(mix(SPECIES_THEMES[look.species].background[1], '#4a3a78', 0.5))}
+            scale={[0.62, 0.06, 0.62]}
+          />
+          <mesh
+            geometry={GEO.disc}
+            material={toon(mix(SPECIES_THEMES[look.species].background[1], '#6c5a9e', 0.32))}
+            position={[0, 0.028, 0]}
+            scale={[0.57, 0.005, 0.57]}
+          />
+        </group>
       )}
       <Poops count={poops} />
       <mesh

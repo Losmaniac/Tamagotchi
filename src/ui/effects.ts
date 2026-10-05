@@ -1,6 +1,17 @@
 import { useEffect } from 'react';
 import { haptic, setHapticsEnabled } from '../audio/haptics';
-import { setSoundEnabled, sfx, unlockAudio, type SfxName } from '../audio/synth';
+import {
+  setSoundEnabled,
+  sfx,
+  startMusic,
+  stopMusic,
+  unlockAudio,
+  voice,
+  type SfxName,
+} from '../audio/synth';
+import { localMinutes } from '../game/sleep';
+import { skyPhase } from '../game/world';
+import { usePageVisible } from './hooks';
 import { isCritical } from '../game/status';
 import { useAppStore } from '../store/useAppStore';
 import type { ReactionKind } from '../three/anim';
@@ -17,12 +28,21 @@ const REACTION_SFX: Record<ReactionKind, SfxName> = {
   scold: 'scold',
   refuse: 'no',
   evolve: 'levelUp',
+  yawn: 'yawn',
 };
 
 /** Sounds + haptics driven by store changes, so game logic stays effect-free. */
 export function useFeedbackEffects(): void {
   const sound = useAppStore((s) => s.settings.sound);
   const haptics = useAppStore((s) => s.settings.haptics);
+  const music = useAppStore((s) => s.settings.music);
+  const visible = usePageVisible();
+
+  useEffect(() => {
+    if (!music || !visible) return;
+    startMusic(() => skyPhase(localMinutes(useAppStore.getState().now())) === 'night');
+    return () => stopMusic();
+  }, [music, visible]);
 
   useEffect(() => setSoundEnabled(sound), [sound]);
   useEffect(() => setHapticsEnabled(haptics), [haptics]);
@@ -42,7 +62,10 @@ export function useFeedbackEffects(): void {
     () =>
       useAppStore.subscribe((s, prev) => {
         if (s.reaction && s.reaction !== prev.reaction) {
-          sfx[REACTION_SFX[s.reaction.kind]]();
+          const species = s.game.pet?.species;
+          if ((s.reaction.kind === 'poke' || s.reaction.kind === 'stroke') && species)
+            voice(species);
+          else sfx[REACTION_SFX[s.reaction.kind]]();
           if (s.reaction.kind === 'refuse') haptic.error();
           else if (s.reaction.kind === 'evolve') haptic.success();
           else haptic.tap();

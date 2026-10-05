@@ -13,6 +13,8 @@ export const GEO = {
   cone: new ConeGeometry(1, 1, 24),
   capsule: new CapsuleGeometry(1, 1, 8, 16),
   cylinder: new CylinderGeometry(1, 1, 1, 16),
+  /** Smooth disc for the ground platform. */
+  disc: new CylinderGeometry(1, 1, 1, 48),
   /** Upper half-ring "∩" in the XY plane, radius 1. */
   arc: new TorusGeometry(1, 0.24, 8, 20, Math.PI),
   ring: new TorusGeometry(1, 0.22, 8, 24),

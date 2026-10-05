@@ -20,6 +20,11 @@ async function hatch(page: Page, name = 'Mochi') {
   await expect(page.getByText(/Hatches in \d+:\d\d/)).toBeVisible();
 }
 
+async function openSettings(page: Page) {
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: /Settings/ }).click();
+}
+
 async function skipStage(page: Page) {
   await page.getByRole('button', { name: 'Debug' }).click();
   await page.getByRole('button', { name: 'Skip stage' }).click();
@@ -68,7 +73,7 @@ test('hatch, care, play, shop and switch language', async ({ page }) => {
   await page.getByRole('button', { name: 'Close' }).click();
 
   // Switch to Czech: every string updates instantly, plurals included.
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await openSettings(page);
   await page.getByRole('button', { name: 'Čeština' }).click();
   await expect(page.getByRole('dialog', { name: 'Nastavení' })).toBeVisible();
   await page.getByRole('button', { name: 'Zavřít' }).click();
@@ -121,7 +126,7 @@ test('death leads to the memorial and a new egg', async ({ page }) => {
 
 test('exports and re-imports the save', async ({ page }) => {
   await hatch(page, 'Saver');
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await openSettings(page);
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: /Export save/ }).click();
   const file = await (await download).path();
@@ -133,13 +138,13 @@ test('exports and re-imports the save', async ({ page }) => {
 
   // Import works from the settings of a new game.
   await hatch(page, 'Temp');
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await openSettings(page);
   await page.getByLabel('Import save').setInputFiles(file);
   await expect(page.getByText('Save imported!')).toBeVisible();
   await page.getByRole('button', { name: 'Close' }).click();
   await expect(page.getByRole('heading', { name: 'Saver' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await openSettings(page);
   await page.getByLabel('Import save').setInputFiles({
     name: 'x.json',
     mimeType: 'application/json',
@@ -165,4 +170,53 @@ test('is installable and works offline', async ({ page, context }) => {
   await page.getByPlaceholder('Name your pal').fill('Offline');
   await page.getByRole('button', { name: /Hatch it/ }).click();
   await expect(page.getByRole('heading', { name: 'Offline' })).toBeVisible();
+});
+
+test('learning features: facts, encyclopedia, snacks, piggy bank, word game', async ({ page }) => {
+  const errors = collectErrors(page);
+  await hatch(page, 'Scholar');
+  await skipStage(page);
+
+  // The pet tells today's fact; it lands in the encyclopedia.
+  await page.getByRole('button', { name: /New fact/ }).click();
+  await expect(page.getByRole('dialog', { name: /Did you know/ })).toBeVisible();
+  await page.getByRole('button', { name: /Add to encyclopedia/ }).click();
+  await expect(page.getByRole('button', { name: /New fact/ })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: /Encyclopedia/ }).click();
+  await expect(page.getByText('1 of 88 facts learned')).toBeVisible();
+  await page.getByRole('button', { name: 'Close' }).click();
+
+  // Healthy snack from the snack picker (the second species is the pup; its favourite is a bone).
+  await page.getByRole('button', { name: 'Feed', exact: true }).click();
+  await page.getByRole('button', { name: /Chew bone/ }).click();
+  await expect(page.getByText(/Favourite food found/)).toBeVisible();
+
+  // Piggy bank: save all coins.
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: /Piggy bank/ }).click();
+  await page
+    .getByRole('button', { name: /^Save \d+$/ })
+    .last()
+    .click();
+  await expect(page.getByText(/Next interest in/)).toBeVisible();
+  await page.getByRole('button', { name: 'Close' }).click();
+
+  // Diary has today's entry.
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: /Carer’s diary/ }).click();
+  await expect(page.getByText('Probably felt:')).toBeVisible();
+  await page.getByRole('button', { name: 'Close' }).click();
+
+  // Word Snack: answer all 8 rounds.
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await page.getByRole('button', { name: /Word Snack/ }).click();
+  await page.getByRole('button', { name: 'Start' }).click();
+  for (let i = 0; i < 8; i++) {
+    const option = page.locator('div.grid.gap-2 button').first();
+    await expect(option).toBeEnabled();
+    await option.click();
+  }
+  await expect(page.getByText(/coins · \+fun/)).toBeVisible();
+  expect(errors).toEqual([]);
 });

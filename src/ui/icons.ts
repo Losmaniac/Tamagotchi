@@ -16,4 +16,9 @@ export const SPECIES_ICON = {
   fox: '🦊',
   panda: '🐼',
   dragon: '🐲',
+  axolotl: '🦎',
+  penguin: '🐧',
+  owl: '🦉',
+  turtle: '🐢',
+  sparky: '⚡',
 } as const;

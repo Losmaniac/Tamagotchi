@@ -2,15 +2,25 @@
 // progress and achievements. Pure: every function returns a new GameState.
 
 import { unlockAchievements, type AchievementId } from './achievements';
-import { coinsForMinigame, rewardMinigame, type ActionResult } from './actions';
-import { LOG_LIMIT, MEMORIAL_LIMIT } from './constants';
+import { coinsForMinigame, feedSnack, rewardMinigame, type ActionResult } from './actions';
+import { accrueInterest, deposit, withdraw } from './bank';
+import { diaryDay, sampleStats, type CareKind } from './diary';
+import { hasSeen, markSeen } from './facts';
+import type { SnackId } from './food';
+import {
+  BIRTHDAY_COINS,
+  HOUR,
+  LOG_LIMIT,
+  MEMORIAL_LIMIT,
+  QUIZ_COINS_PER_CORRECT,
+} from './constants';
 import { killPet, toMemorial } from './death';
 import { createEgg, type NewEggOptions } from './pet';
 import type { GameState, MinigameId } from './save';
 import { getItem, type ItemId } from './shop';
 import { advance, type SimOptions } from './simulation';
 import { summarize, type AwaySummary } from './summary';
-import { STAGES, type LogEntry, type Pet, type SimEvent } from './types';
+import { STAGES, type LogEntry, type Pet, type SimEvent, type Species } from './types';
 
 export interface GameUpdate {
   game: GameState;
@@ -72,6 +82,18 @@ function absorbEvents(game: GameState, pet: Pet, events: SimEvent[]): void {
       case 'perfectDay':
         game.progress.perfectDays += 1;
         break;
+      case 'birthday':
+        game.coins += BIRTHDAY_COINS[e.days] ?? 0;
+        break;
+      case 'wellRested':
+        diaryDay(game.diary, localDayKey(e.t)).wellRested = true;
+        break;
+      case 'careMistake':
+        diaryDay(game.diary, localDayKey(e.t)).missedCalls += 1;
+        break;
+      case 'sick':
+        diaryDay(game.diary, localDayKey(e.t)).sick = true;
+        break;
       case 'cured':
         game.progress.cures += 1;
         break;
@@ -104,6 +126,13 @@ export function tick(
   const game = cloneGame(input);
   game.pet = result.pet;
   absorbEvents(game, result.pet, result.events);
+  accrueInterest(game.bank, now);
+  if (!result.pet.dead && result.pet.stage !== 'egg')
+    sampleStats(
+      diaryDay(game.diary, localDayKey(now)),
+      result.pet.stats,
+      Math.max(0, now - from) / HOUR,
+    );
   const summary = summarize(before, result.pet, result.events, from, now, result.coins);
   return { ...finish(game, result.events, now), summary };
 }
@@ -117,6 +146,7 @@ export function act(
   now: number,
   opts: SimOptions,
   action: (pet: Pet, now: number) => ActionResult,
+  care?: CareKind,
 ): GameUpdate & { outcome: ActionResult['outcome'] | null } {
   const ticked = tick(input, now, opts);
   const game = ticked.game;
@@ -128,6 +158,11 @@ export function act(
     game.progress.poopsCleaned += poopsBefore - result.pet.poops;
   }
   absorbEvents(game, result.pet, result.events);
+  const okOutcomes: ActionResult['outcome'][] = ['ok', 'favorite', 'gotSick', 'cured'];
+  if (care && okOutcomes.includes(result.outcome)) {
+    const rec = diaryDay(game.diary, localDayKey(now));
+    rec.care[care] = (rec.care[care] ?? 0) + 1;
+  }
   const events = [...ticked.events, ...result.events];
   const unlocked = [...ticked.unlocked, ...unlockAchievements(game, now)];
   return { game, events, unlocked, outcome: result.outcome };
@@ -146,8 +181,59 @@ export function killNow(input: GameState, now: number): GameUpdate {
 
 export function startEgg(input: GameState, opts: NewEggOptions): GameState {
   const game = cloneGame(input);
-  game.pet = createEgg(opts);
+  // The very first pet gets a gentle start.
+  const beginner = game.progress.hatched === 0 && game.memorial.length === 0;
+  game.pet = createEgg({ beginner, ...opts });
   return game;
+}
+
+/** Feeds a chosen snack; trying a species' favourite discovers it. */
+export function feedSnackFood(input: GameState, now: number, opts: SimOptions, food: SnackId) {
+  const res = act(input, now, opts, (pet, t) => feedSnack(pet, t, food), 'snack');
+  const pet = res.game.pet;
+  if (pet && res.outcome === 'favorite') res.game.progress.favorites[pet.species] = food;
+  return res;
+}
+
+export function bankDeposit(input: GameState, amount: number, now: number): GameState {
+  const coins = Math.min(Math.floor(amount), input.coins);
+  if (coins <= 0) return input;
+  const game = cloneGame(input);
+  game.coins -= coins;
+  deposit(game.bank, coins, now);
+  return game;
+}
+
+export function bankWithdraw(input: GameState, amount: number, now: number): GameState {
+  const game = cloneGame(input);
+  game.coins += withdraw(game.bank, Math.floor(amount), now);
+  return game;
+}
+
+/** The pet told today's fact: add it to the encyclopedia. */
+export function learnFact(input: GameState, species: Species, index: number): GameState {
+  if (hasSeen(input.progress.factsSeen, species, index)) return input;
+  const game = cloneGame(input);
+  game.progress.factsSeen = markSeen(game.progress.factsSeen, species, index);
+  return game;
+}
+
+export function canQuizToday(game: GameState, now: number): boolean {
+  return game.progress.lastQuizDay !== localDayKey(now);
+}
+
+/** Pays the daily quiz reward (once per day). Returns coins earned. */
+export function finishQuiz(
+  input: GameState,
+  now: number,
+  correct: number,
+): { game: GameState; coins: number } {
+  if (!canQuizToday(input, now)) return { game: input, coins: 0 };
+  const game = cloneGame(input);
+  const coins = Math.max(0, correct) * QUIZ_COINS_PER_CORRECT;
+  game.coins += coins;
+  game.progress.lastQuizDay = localDayKey(now);
+  return { game, coins };
 }
 
 /** Records a finished mini-game: rewards the pet and pays coins. */

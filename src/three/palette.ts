@@ -10,6 +10,21 @@ export interface SpeciesColors {
   pink: string;
 }
 
+/** Iris colour per species (eyes get a coloured iris in the detailed look). */
+export const IRIS: Record<Species, string> = {
+  cat: '#4caf50',
+  dog: '#7a4a2a',
+  bunny: '#c2185b',
+  fox: '#e68a00',
+  panda: '#5d4037',
+  dragon: '#f9a825',
+  axolotl: '#3d2b4f',
+  penguin: '#4a3b2f',
+  owl: '#ffb300',
+  turtle: '#6d4c2f',
+  sparky: '#1e88e5',
+};
+
 export interface SpeciesTheme {
   /** Pastel gradient behind the pet (top → bottom). */
   background: [string, string];
@@ -63,6 +78,46 @@ export const SPECIES_THEMES: Record<Species, SpeciesTheme> = {
       { body: '#5ee6a8', belly: '#fff3b0', accent: '#2fb37a', pink: '#ff9fb5' },
       { body: '#9d6bff', belly: '#ffd6f6', accent: '#6a3fd6', pink: '#ff8fd0' },
       { body: '#ff5d5d', belly: '#ffd39b', accent: '#c73a3a', pink: '#ffb0a0' },
+    ],
+  },
+  axolotl: {
+    background: ['#c3f0ff', '#d9c8ff'],
+    variants: [
+      { body: '#ffb3c7', belly: '#ffe0ea', accent: '#ff5d8f', pink: '#ff7aa8' },
+      { body: '#8a7fd1', belly: '#c9c2f2', accent: '#ff7ac6', pink: '#ff9fd0' },
+      { body: '#ffe08a', belly: '#fff3c9', accent: '#ff9a3d', pink: '#ffab91' },
+    ],
+  },
+  penguin: {
+    background: ['#d6f1ff', '#ffffff'],
+    variants: [
+      { body: '#2f3348', belly: '#ffffff', accent: '#ffa726', pink: '#ff9fb5' },
+      { body: '#4a6fa5', belly: '#f6fbff', accent: '#ffb74d', pink: '#ff9fb5' },
+      { body: '#7e8794', belly: '#ffffff', accent: '#ffca28', pink: '#ff9fb5' },
+    ],
+  },
+  owl: {
+    background: ['#ffe8c7', '#cfe8c4'],
+    variants: [
+      { body: '#a47551', belly: '#f3e1c7', accent: '#6b4a35', pink: '#ffab91' },
+      { body: '#e8e4dc', belly: '#ffffff', accent: '#9e9a92', pink: '#ffb3c1' },
+      { body: '#7d6bb3', belly: '#e6defa', accent: '#4f3f86', pink: '#ffb3e0' },
+    ],
+  },
+  turtle: {
+    background: ['#cdf5e2', '#fff5c9'],
+    variants: [
+      { body: '#8fd17f', belly: '#f6eabb', accent: '#4f8a3a', pink: '#ffab91' },
+      { body: '#7fd0e0', belly: '#eef9fb', accent: '#2f7f99', pink: '#ffab91' },
+      { body: '#f2b37a', belly: '#fff0db', accent: '#a0612e', pink: '#ff9f80' },
+    ],
+  },
+  sparky: {
+    background: ['#fff6c2', '#c9e8ff'],
+    variants: [
+      { body: '#ffd84d', belly: '#fff6d1', accent: '#2f9df4', pink: '#ffb38a' },
+      { body: '#7ef0d0', belly: '#e6fff8', accent: '#7c4dff', pink: '#ffa3c4' },
+      { body: '#c3a6ff', belly: '#f2ebff', accent: '#ffcc00', pink: '#ff9fd0' },
     ],
   },
 };
