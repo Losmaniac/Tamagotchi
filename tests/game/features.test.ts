@@ -38,7 +38,7 @@ import {
   tick,
 } from '../../src/game/game';
 import { clean } from '../../src/game/actions';
-import { createDefaultGame, migrateSave } from '../../src/game/save';
+import { SCHEMA_VERSION, createDefaultGame, migrateSave } from '../../src/game/save';
 import { advance } from '../../src/game/simulation';
 import { isNearBedtime, seasonOf, skyPhase } from '../../src/game/world';
 import { makeWordRounds, wordNormalized } from '../../src/minigames/wordSnackLogic';
@@ -246,14 +246,15 @@ describe('facts and quiz', () => {
 
 describe('word snack', () => {
   it('makes 8 unique rounds with 3 options each', () => {
-    const rounds = makeWordRounds(3, 24);
+    const ids = Array.from({ length: 24 }, (_, i) => `w${i}`);
+    const rounds = makeWordRounds(3, ids);
     expect(rounds).toHaveLength(8);
     expect(new Set(rounds.map((r) => r.answer)).size).toBe(8);
     for (const r of rounds) {
       expect(r.options).toContain(r.answer);
       expect(new Set(r.options).size).toBe(3);
     }
-    expect(makeWordRounds(3, 2)).toHaveLength(2);
+    expect(makeWordRounds(3, ['a', 'b'])).toHaveLength(2);
     expect(wordNormalized(6)).toBe(0.75);
   });
 });
@@ -265,7 +266,7 @@ describe('save v2 migration', () => {
     delete pet.gentleUntil;
     delete pet.nightLightsOnMs;
     const s = migrateSave({ settings: { locale: 'cs' }, game: { pet, coins: 99 } }, 1, 'en');
-    expect(s.schemaVersion).toBe(2);
+    expect(s.schemaVersion).toBe(SCHEMA_VERSION);
     expect(s.game.pet?.name).toBe('Mochi');
     expect(s.game.pet?.gentleUntil).toBe(0);
     expect(s.game.coins).toBe(99);

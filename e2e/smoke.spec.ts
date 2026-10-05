@@ -212,11 +212,55 @@ test('learning features: facts, encyclopedia, snacks, piggy bank, word game', as
   await page.getByRole('button', { name: 'Play', exact: true }).click();
   await page.getByRole('button', { name: /Word Snack/ }).click();
   await page.getByRole('button', { name: 'Start' }).click();
+  await page.getByRole('button', { name: /Feelings/ }).click();
   for (let i = 0; i < 8; i++) {
-    const option = page.locator('div.grid.gap-2 button').first();
+    const option = page.locator('div.word-options button').first();
     await expect(option).toBeEnabled();
     await option.click();
   }
   await expect(page.getByText(/coins · \+fun/)).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('learning lab: detective, wild cousins, budget and check-in', async ({ page }) => {
+  const errors = collectErrors(page);
+  await hatch(page, 'Einstein');
+  await skipStage(page);
+
+  // Daily feelings check-in.
+  await page.getByRole('button', { name: /How are you/ }).click();
+  await page.getByRole('button', { name: /Worried/ }).click();
+  await expect(page.getByText(/116 111/)).toBeVisible();
+  await page.getByRole('button', { name: 'Got it' }).click();
+  await expect(page.getByRole('button', { name: /How are you/ })).toHaveCount(0);
+
+  // A sickness opens a detective case from the status banner.
+  await page.getByRole('button', { name: 'Debug' }).click();
+  await page.getByRole('button', { name: 'Force sickness' }).click();
+  await page.getByRole('button', { name: 'Close' }).click();
+  await page.getByRole('button', { name: 'Why?' }).click();
+  await expect(page.getByText(/immune system/)).toBeVisible();
+  await page.getByRole('button', { name: /Investigate/ }).click();
+  await page.getByRole('button', { name: /Just bad luck/ }).click();
+  await expect(page.getByText(/Case solved!/)).toBeVisible();
+
+  // Lab hub: wild cousins and budget week.
+  await page.getByRole('button', { name: /Back/ }).click();
+  await page.getByRole('button', { name: /Wild cousins/ }).click();
+  await expect(page.getByRole('heading', { name: 'Grey wolf' })).toBeVisible();
+  await page.getByRole('tab', { name: 'Axolotl' }).click();
+  await expect(page.getByText(/Critically endangered/)).toBeVisible();
+  await page.getByRole('button', { name: /Back/ }).click();
+  await page.getByRole('button', { name: /Budget week/ }).click();
+  await page.getByRole('button', { name: /Start budget week/ }).click();
+  await expect(page.getByText(/Days left: 7/)).toBeVisible();
+  await page.getByRole('button', { name: 'Close' }).click();
+
+  // Spending during the budget week is tracked.
+  await page.getByRole('button', { name: 'Medicine', exact: true }).click();
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: /Learning lab/ }).click();
+  await page.getByRole('button', { name: /Budget week/ }).click();
+  await expect(page.getByRole('meter', { name: 'Needs' })).toHaveAttribute('aria-valuenow', '5');
   expect(errors).toEqual([]);
 });

@@ -1,3 +1,4 @@
+import { WORD_LEARNED_BOX } from './constants';
 import type { GameState } from './save';
 import { STAGES } from './types';
 
@@ -36,6 +37,15 @@ export const ACHIEVEMENTS = [
   { id: 'cleanFreak', icon: '🧽', test: (g) => g.progress.poopsCleaned >= 25 },
   { id: 'doctor', icon: '💊', test: (g) => g.progress.cures >= 1 },
   { id: 'disciplined', icon: '📏', test: (g) => (g.pet?.discipline ?? 0) >= 100 },
+  { id: 'detective', icon: '🔍', test: (g) => g.progress.casesCorrect >= 3 },
+  { id: 'scientist', icon: '🧪', test: (g) => g.progress.experimentsDone >= 1 },
+  { id: 'budgeter', icon: '💸', test: (g) => g.progress.budgetGoalsMet >= 1 },
+  { id: 'balancedPlate', icon: '🥗', test: (g) => g.progress.platesDone >= 1 },
+  {
+    id: 'polyglot',
+    icon: '🗣️',
+    test: (g) => Object.values(g.progress.words).filter((b) => b >= WORD_LEARNED_BOX).length >= 50,
+  },
 ] as const satisfies readonly Achievement[];
 
 export type AchievementId = (typeof ACHIEVEMENTS)[number]['id'];

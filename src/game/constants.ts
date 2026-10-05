@@ -147,3 +147,30 @@ export const QUIZ_MIN_FACTS = 3;
 
 // --- Diary --------------------------------------------------------------------------------------
 export const DIARY_DAYS = 14;
+
+// --- Learning lab -------------------------------------------------------------------------------
+/** Detective mode: coins for naming the cause of a sickness. */
+export const DETECTIVE_COINS = 5;
+/** Food lab: weekly balanced-plate challenge. */
+export const PLATE_MIN_GROUP = 2; // fruit, veg and protein snacks each
+export const PLATE_MIN_MEALS = 5;
+export const PLATE_MAX_TREATS = 4;
+export const PLATE_COINS = 20;
+/** Care experiments. */
+export const EXPERIMENT_DAYS = 3;
+export const EXPERIMENT_BASELINE_DAYS = 3;
+/** A change smaller than this (stat points) is "unclear". */
+export const EXPERIMENT_THRESHOLD = 5;
+export const EXPERIMENT_COINS = 15;
+export const EXPERIMENT_BONUS_COINS = 10;
+/** Budget week. */
+export const BUDGET_DAYS = 7;
+export const BUDGET_ALLOWANCE = 70;
+export const BUDGET_BONUS = 15;
+/** More missed calls than this means needs were skimped on. */
+export const BUDGET_MAX_MISSED = 2;
+/** Feelings check-ins kept for the diary. */
+export const MOOD_DAYS = 14;
+/** Word Snack: Leitner box at which a word counts as learned. */
+export const WORD_LEARNED_BOX = 3;
+export const WORD_MAX_BOX = 4;

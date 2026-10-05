@@ -6,9 +6,20 @@ import type { ActionOutcome, ActionResult } from '../game/actions';
 import { debugForceSick, debugSetStat, debugSkipStage } from '../game/debug';
 import {
   act,
+  beginBudget,
+  beginExperiment,
   buyItem,
   bankDeposit,
   bankWithdraw,
+  cancelBudget,
+  cancelExperiment,
+  checkIn,
+  claimPlateReward,
+  closeBudget,
+  concludeExperiment,
+  recordWords,
+  setImmersionDay,
+  solveDetectiveCase,
   feedSnackFood,
   finishMinigame,
   finishQuiz,
@@ -21,7 +32,10 @@ import {
   type GameUpdate,
 } from '../game/game';
 import { WELCOME_BACK_AWAY } from '../game/constants';
+import type { BudgetResult } from '../game/budget';
 import type { CareKind } from '../game/diary';
+import type { Conclusion, ExperimentId } from '../game/experiments';
+import type { Mood } from '../game/learning';
 import type { SnackId } from '../game/food';
 import { randomSeed } from '../game/rng';
 import type { PhraseKey } from '../i18n/vocab';
@@ -42,7 +56,7 @@ import type { BuyOutcome } from '../game/game';
 import type { ItemId } from '../game/shop';
 import type { SimOptions } from '../game/simulation';
 import { isSummaryWorthShowing, type AwaySummary } from '../game/summary';
-import type { ColorVariant, Pet, SimEvent, Species, StatKey } from '../game/types';
+import type { ColorVariant, Pet, SickCause, SimEvent, Species, StatKey } from '../game/types';
 import { detectLocale } from '../i18n/translate';
 import type { Reaction, ReactionKind } from '../three/anim';
 import { safeStorage } from './safeStorage';
@@ -121,6 +135,18 @@ interface Actions {
   finishQuiz: (correct: number) => number;
   playMinigame: (id: MinigameId, score: number) => { coins: number; ok: boolean };
   buy: (id: ItemId) => BuyOutcome;
+  /** Learning lab. */
+  solveCase: (guess: SickCause) => { correct: boolean; answer: SickCause; coins: number } | null;
+  startExperiment: (id: ExperimentId) => void;
+  concludeExperiment: (picked: Conclusion) => { coins: number; expected: Conclusion } | null;
+  cancelExperiment: () => void;
+  startBudget: (goal: number) => void;
+  closeBudget: () => BudgetResult | null;
+  cancelBudget: () => void;
+  claimPlate: () => number;
+  checkIn: (mood: Mood) => void;
+  recordWords: (answers: { id: string; correct: boolean }[]) => void;
+  setImmersion: (on: boolean) => void;
   toggleItem: (id: ItemId) => void;
   dismissSummary: () => void;
   shiftAchievement: () => void;
@@ -363,6 +389,38 @@ export const useAppStore = create<AppState>()(
           }));
           return res.outcome;
         },
+
+        solveCase: (guess) => {
+          const res = solveDetectiveCase(get().game, guess, get().now());
+          if (!res) return null;
+          commit(res, res.correct ? { reaction: { kind: 'hop', id: ++reactionId } } : {});
+          return { correct: res.correct, answer: res.answer, coins: res.coins };
+        },
+        startExperiment: (id) => set((s) => ({ game: beginExperiment(s.game, id, get().now()) })),
+        concludeExperiment: (picked) => {
+          const res = concludeExperiment(get().game, picked, get().now());
+          if (!res) return null;
+          commit(res);
+          return { coins: res.coins, expected: res.expected };
+        },
+        cancelExperiment: () => set((s) => ({ game: cancelExperiment(s.game) })),
+        startBudget: (goal) => set((s) => ({ game: beginBudget(s.game, goal, get().now()) })),
+        closeBudget: () => {
+          const res = closeBudget(get().game, get().now());
+          if (!res) return null;
+          commit(res);
+          return res.result;
+        },
+        cancelBudget: () => set((s) => ({ game: cancelBudget(s.game) })),
+        claimPlate: () => {
+          const res = claimPlateReward(get().game, get().now());
+          if (!res) return 0;
+          commit(res);
+          return res.coins;
+        },
+        checkIn: (mood) => set((s) => ({ game: checkIn(s.game, mood, get().now()) })),
+        recordWords: (answers) => commit(recordWords(get().game, answers, get().now())),
+        setImmersion: (on) => set((s) => ({ game: setImmersionDay(s.game, get().now(), on) })),
 
         toggleItem: (id) => {
           const res = toggleEquip(get().game, id, get().now());

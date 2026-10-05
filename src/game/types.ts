@@ -32,6 +32,19 @@ export type CallKind = CareStat | 'lights';
 export type ActUpKind = 'refuseFood' | 'fakeCall';
 export type DeathCause = 'sickness' | 'neglect' | 'oldAge';
 export type SleepReason = 'bedtime' | 'nap' | 'exhausted';
+/** Why the pet got sick — the answer to a detective case. */
+export type SickCause = 'dirty' | 'hungry' | 'overfed' | 'bug';
+export const SICK_CAUSES: readonly SickCause[] = ['dirty', 'hungry', 'overfed', 'bug'];
+
+/** Evidence recorded the moment the pet got sick. */
+export interface SickClues {
+  hygiene: number;
+  hunger: number;
+  energy: number;
+  poops: number;
+  /** Snacks eaten within the overfeeding window. */
+  snacks: number;
+}
 
 export interface Bedtime {
   /** Minutes after local midnight. */
@@ -78,6 +91,11 @@ export interface Pet {
 
   sick: boolean;
   medicineDosesLeft: number;
+  /** Detective mode: the real cause and the evidence of the latest sickness. */
+  sickCause: SickCause | null;
+  sickClues: SickClues | null;
+  /** The player already made a guess for the latest sickness. */
+  caseSolved: boolean;
   poops: number;
   /** Awake time (ms) left until the next poop. */
   poopTimer: number;
@@ -157,6 +175,7 @@ export type SimEvent =
   | { type: 'fellAsleep'; t: number; reason: SleepReason }
   | { type: 'wokeUp'; t: number }
   | { type: 'careMistake'; t: number; call: CallKind }
+  | { type: 'callAnswered'; t: number; ms: number }
   | { type: 'actedUp'; t: number; kind: ActUpKind }
   | { type: 'actIgnored'; t: number }
   | { type: 'perfectDay'; t: number }

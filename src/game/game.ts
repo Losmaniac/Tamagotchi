@@ -4,9 +4,22 @@
 import { unlockAchievements, type AchievementId } from './achievements';
 import { coinsForMinigame, feedSnack, rewardMinigame, type ActionResult } from './actions';
 import { accrueInterest, deposit, withdraw } from './bank';
+import { budgetOver, settleBudget, spend, startBudget, type BudgetItem } from './budget';
+import { solveCase } from './detective';
 import { diaryDay, sampleStats, type CareKind } from './diary';
+import {
+  evaluate,
+  experimentCoins,
+  isFinished,
+  startExperiment,
+  type Conclusion,
+  type ExperimentId,
+} from './experiments';
+import { recordMood, topicsFromPet, unlockTopics, type Mood } from './learning';
+import { claimPlate, currentPlate, recordFood } from './nutrition';
+import { nextBox } from './words';
 import { hasSeen, markSeen } from './facts';
-import type { SnackId } from './food';
+import { getSnack, type SnackId } from './food';
 import {
   BIRTHDAY_COINS,
   HOUR,
@@ -20,7 +33,14 @@ import type { GameState, MinigameId } from './save';
 import { getItem, type ItemId } from './shop';
 import { advance, type SimOptions } from './simulation';
 import { summarize, type AwaySummary } from './summary';
-import { STAGES, type LogEntry, type Pet, type SimEvent, type Species } from './types';
+import {
+  STAGES,
+  type LogEntry,
+  type Pet,
+  type SickCause,
+  type SimEvent,
+  type Species,
+} from './types';
 
 export interface GameUpdate {
   game: GameState;
@@ -91,6 +111,12 @@ function absorbEvents(game: GameState, pet: Pet, events: SimEvent[]): void {
       case 'careMistake':
         diaryDay(game.diary, localDayKey(e.t)).missedCalls += 1;
         break;
+      case 'callAnswered': {
+        const rec = diaryDay(game.diary, localDayKey(e.t));
+        rec.answered += 1;
+        rec.responseMin += Math.round(e.ms / 60_000);
+        break;
+      }
       case 'sick':
         diaryDay(game.diary, localDayKey(e.t)).sick = true;
         break;
@@ -127,6 +153,7 @@ export function tick(
   game.pet = result.pet;
   absorbEvents(game, result.pet, result.events);
   accrueInterest(game.bank, now);
+  game.progress.bodyTopics = unlockTopics(game.progress.bodyTopics, topicsFromPet(result.pet));
   if (!result.pet.dead && result.pet.stage !== 'egg')
     sampleStats(
       diaryDay(game.diary, localDayKey(now)),
@@ -147,6 +174,7 @@ export function act(
   opts: SimOptions,
   action: (pet: Pet, now: number) => ActionResult,
   care?: CareKind,
+  food?: SnackId,
 ): GameUpdate & { outcome: ActionResult['outcome'] | null } {
   const ticked = tick(input, now, opts);
   const game = ticked.game;
@@ -159,13 +187,26 @@ export function act(
   }
   absorbEvents(game, result.pet, result.events);
   const okOutcomes: ActionResult['outcome'][] = ['ok', 'favorite', 'gotSick', 'cured'];
-  if (care && okOutcomes.includes(result.outcome)) {
-    const rec = diaryDay(game.diary, localDayKey(now));
-    rec.care[care] = (rec.care[care] ?? 0) + 1;
-  }
+  if (care && okOutcomes.includes(result.outcome)) recordCare(game, now, care, food);
   const events = [...ticked.events, ...result.events];
   const unlocked = [...ticked.unlocked, ...unlockAchievements(game, now)];
   return { game, events, unlocked, outcome: result.outcome };
+}
+
+/** Diary, budget week, balanced plate and Body book bookkeeping for a care action. Mutates. */
+function recordCare(game: GameState, now: number, care: CareKind, food?: SnackId): void {
+  const day = localDayKey(now);
+  const rec = diaryDay(game.diary, day);
+  rec.care[care] = (rec.care[care] ?? 0) + 1;
+  if (game.budget) {
+    const item: BudgetItem =
+      care === 'snack' && food && getSnack(food)?.sweet ? 'sweetSnack' : care;
+    game.budget = spend(game.budget, item, now);
+  }
+  if (care === 'meal') game.plate = recordFood(game.plate, day, 'meal');
+  if (care === 'snack') game.plate = recordFood(game.plate, day, food ?? 'cookie');
+  if (care === 'medicine')
+    game.progress.bodyTopics = unlockTopics(game.progress.bodyTopics, ['medicine']);
 }
 
 /** Debug: the pet dies right now (recorded in the memorial like any death). */
@@ -189,7 +230,7 @@ export function startEgg(input: GameState, opts: NewEggOptions): GameState {
 
 /** Feeds a chosen snack; trying a species' favourite discovers it. */
 export function feedSnackFood(input: GameState, now: number, opts: SimOptions, food: SnackId) {
-  const res = act(input, now, opts, (pet, t) => feedSnack(pet, t, food), 'snack');
+  const res = act(input, now, opts, (pet, t) => feedSnack(pet, t, food), 'snack', food);
   const pet = res.game.pet;
   if (pet && res.outcome === 'favorite') res.game.progress.favorites[pet.species] = food;
   return res;
@@ -248,6 +289,7 @@ export function finishMinigame(
   const game = res.game;
   const coins = res.outcome === 'ok' ? coinsForMinigame(score) : 0;
   game.coins += coins;
+  if (game.budget && res.outcome === 'ok') game.budget = spend(game.budget, 'minigame', now);
   game.progress.gamesPlayed += 1;
   game.progress.bestScores[id] = Math.max(game.progress.bestScores[id] ?? 0, score);
   return { ...res, unlocked: [...res.unlocked, ...unlockAchievements(game, now)], coins };
@@ -305,4 +347,130 @@ export function recordOpen(
   game.progress.streak = game.progress.lastOpenDay === yesterday ? game.progress.streak + 1 : 1;
   game.progress.lastOpenDay = today;
   return { game, unlocked: unlockAchievements(game, now) };
+}
+
+// --- Learning lab ------------------------------------------------------------------------------
+
+/** Detective mode: one guess per sickness. */
+export function solveDetectiveCase(
+  input: GameState,
+  guess: SickCause,
+  now: number,
+): (GameUpdate & { correct: boolean; answer: SickCause; coins: number }) | null {
+  if (!input.pet) return null;
+  const res = solveCase(input.pet, guess);
+  if (!res) return null;
+  const game = cloneGame(input);
+  game.pet = res.pet;
+  game.coins += res.coins;
+  game.progress.casesSolved += 1;
+  if (res.correct) game.progress.casesCorrect += 1;
+  return {
+    ...finish(game, [], now),
+    correct: res.correct,
+    answer: res.answer,
+    coins: res.coins,
+  };
+}
+
+export function beginExperiment(input: GameState, id: ExperimentId, now: number): GameState {
+  if (input.experiment) return input;
+  const game = cloneGame(input);
+  game.experiment = startExperiment(id, localDayKey(now));
+  return game;
+}
+
+export function cancelExperiment(input: GameState): GameState {
+  return input.experiment ? { ...input, experiment: null } : input;
+}
+
+/** Hands in a conclusion for a finished experiment and pays the reward. */
+export function concludeExperiment(
+  input: GameState,
+  picked: Conclusion,
+  now: number,
+): (GameUpdate & { coins: number; expected: Conclusion }) | null {
+  const exp = input.experiment;
+  if (!exp || !isFinished(exp, localDayKey(now))) return null;
+  const { expected } = evaluate(exp, input.diary);
+  const coins = experimentCoins(expected, picked);
+  const game = cloneGame(input);
+  game.experiment = null;
+  game.coins += coins;
+  game.progress.experimentsDone += 1;
+  return { ...finish(game, [], now), coins, expected };
+}
+
+export function beginBudget(input: GameState, goal: number, now: number): GameState {
+  if (input.budget) return input;
+  const game = cloneGame(input);
+  game.budget = startBudget(now, localDayKey(now), goal);
+  return game;
+}
+
+export function cancelBudget(input: GameState): GameState {
+  return input.budget ? { ...input, budget: null } : input;
+}
+
+/** Settles a finished budget week: pays leftover allowance (+ bonus) as coins. */
+export function closeBudget(
+  input: GameState,
+  now: number,
+): (GameUpdate & { result: ReturnType<typeof settleBudget> }) | null {
+  const b = input.budget;
+  if (!b || !budgetOver(b, now)) return null;
+  const result = settleBudget(b, input.diary);
+  const game = cloneGame(input);
+  game.budget = null;
+  game.coins += result.coins;
+  game.progress.budgetsDone += 1;
+  if (result.outcome === 'great') game.progress.budgetGoalsMet += 1;
+  return { ...finish(game, [], now), result };
+}
+
+export function claimPlateReward(
+  input: GameState,
+  now: number,
+): (GameUpdate & { coins: number }) | null {
+  const plate = currentPlate(input.plate, localDayKey(now));
+  const res = claimPlate(plate);
+  if (res.coins === 0) return null;
+  const game = cloneGame(input);
+  game.plate = res.plate;
+  game.coins += res.coins;
+  game.progress.platesDone += 1;
+  return { ...finish(game, [], now), coins: res.coins };
+}
+
+export function checkIn(input: GameState, mood: Mood, now: number): GameState {
+  const game = cloneGame(input);
+  game.progress.moods = recordMood(game.progress.moods, localDayKey(now), mood);
+  return game;
+}
+
+export function hasCheckedInToday(game: GameState, now: number): boolean {
+  const today = localDayKey(now);
+  return game.progress.moods.some((m) => m.day === today);
+}
+
+/** Word Snack spaced repetition: moves each answered word between Leitner boxes. */
+export function recordWords(
+  input: GameState,
+  answers: { id: string; correct: boolean }[],
+  now: number,
+): GameUpdate {
+  const game = cloneGame(input);
+  for (const a of answers)
+    game.progress.words[a.id] = nextBox(game.progress.words[a.id], a.correct);
+  return finish(game, [], now);
+}
+
+export function setImmersionDay(input: GameState, now: number, on: boolean): GameState {
+  const game = cloneGame(input);
+  game.progress.immersionDay = on ? localDayKey(now) : null;
+  return game;
+}
+
+export function isImmersionDay(game: GameState, now: number): boolean {
+  return game.progress.immersionDay === localDayKey(now);
 }

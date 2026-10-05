@@ -1,7 +1,19 @@
 // Persisted save shape, defaults, migrations and import validation. Pure TS.
 
 import { createBank, type Bank } from './bank';
-import { BANK_HISTORY_LIMIT, DEFAULT_BEDTIME, DIARY_DAYS, START_COINS } from './constants';
+import { BUDGET_GOALS, type Budget } from './budget';
+import { emptyDay } from './diary';
+import { EXPERIMENT_IDS, type Experiment } from './experiments';
+import { BODY_TOPICS, isMood, type BodyTopic, type MoodEntry } from './learning';
+import { FOOD_GROUPS, type FoodGroup, type Plate } from './nutrition';
+import {
+  BANK_HISTORY_LIMIT,
+  DEFAULT_BEDTIME,
+  DIARY_DAYS,
+  MOOD_DAYS,
+  START_COINS,
+  WORD_MAX_BOX,
+} from './constants';
 import type { DiaryDay } from './diary';
 import type { FactsSeen } from './facts';
 import { isSnackId, type SnackId } from './food';
@@ -9,6 +21,7 @@ import { isItemId, ITEM_SLOTS, type Inventory } from './shop';
 import {
   CARE_STATS,
   COLOR_VARIANTS,
+  SICK_CAUSES,
   SPECIES,
   STAGES,
   type Bedtime,
@@ -18,7 +31,7 @@ import {
   type Species,
 } from './types';
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 export const STORAGE_KEY = 'pocketpals:v1';
 
 export type Locale = 'en' | 'cs';
@@ -56,6 +69,20 @@ export interface Progress {
   /** Favourite snacks discovered per species. */
   favorites: Partial<Record<Species, SnackId>>;
   lastQuizDay: string | null;
+  /** Learning lab. */
+  bodyTopics: BodyTopic[];
+  casesSolved: number;
+  casesCorrect: number;
+  experimentsDone: number;
+  budgetsDone: number;
+  budgetGoalsMet: number;
+  platesDone: number;
+  /** Word Snack spaced repetition: Leitner box per word id. */
+  words: Record<string, number>;
+  /** Feelings check-ins (the player's own mood; never leaves the device). */
+  moods: MoodEntry[];
+  /** Day on which the pet speaks only the other language. */
+  immersionDay: string | null;
 }
 
 export interface GameState {
@@ -68,6 +95,9 @@ export interface GameState {
   progress: Progress;
   bank: Bank;
   diary: DiaryDay[];
+  plate: Plate | null;
+  experiment: Experiment | null;
+  budget: Budget | null;
 }
 
 export interface SaveData {
@@ -112,9 +142,22 @@ export function createDefaultGame(): GameState {
       factsSeen: {},
       favorites: {},
       lastQuizDay: null,
+      bodyTopics: [],
+      casesSolved: 0,
+      casesCorrect: 0,
+      experimentsDone: 0,
+      budgetsDone: 0,
+      budgetGoalsMet: 0,
+      platesDone: 0,
+      words: {},
+      moods: [],
+      immersionDay: null,
     },
     bank: createBank(),
     diary: [],
+    plate: null,
+    experiment: null,
+    budget: null,
   };
 }
 
@@ -141,6 +184,13 @@ const migrations: Record<number, Migration> = {
     if (isObj(game.pet))
       game.pet = { beginner: false, gentleUntil: 0, nightLightsOnMs: 0, ...game.pet };
     return { ...data, game, schemaVersion: 2 };
+  },
+  // v3: learning lab (detective fields on the pet; the rest is defaulted by sanitizeGame).
+  2: (data) => {
+    const game = isObj(data.game) ? { ...data.game } : {};
+    if (isObj(game.pet))
+      game.pet = { sickCause: null, sickClues: null, caseSolved: true, ...game.pet };
+    return { ...data, game, schemaVersion: 3 };
   },
 };
 
@@ -235,6 +285,68 @@ function sanitizeBank(raw: unknown): Bank {
   };
 }
 
+const isDay = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
+function sanitizePet(raw: unknown): Pet | null {
+  if (!isValidPet(raw)) return null;
+  const pet = raw as Pet & Obj;
+  const clues = pet.sickClues as unknown;
+  const cluesOk =
+    isObj(clues) &&
+    ['hygiene', 'hunger', 'energy', 'poops', 'snacks'].every((k) => isNum(clues[k]));
+  const cause = (SICK_CAUSES as readonly unknown[]).includes(pet.sickCause) ? pet.sickCause : null;
+  return {
+    ...pet,
+    sickCause: cause,
+    sickClues: cluesOk ? pet.sickClues : null,
+    caseSolved: typeof pet.caseSolved === 'boolean' ? pet.caseSolved : true,
+  };
+}
+
+function sanitizePlate(raw: unknown): Plate | null {
+  if (!isObj(raw) || !isDay(raw.week) || !isObj(raw.counts)) return null;
+  const counts = {} as Record<FoodGroup, number>;
+  for (const g of FOOD_GROUPS) counts[g] = Math.max(0, Math.floor(num(raw.counts[g], 0)));
+  return { week: raw.week, counts, claimed: bool(raw.claimed, false) };
+}
+
+function sanitizeExperiment(raw: unknown): Experiment | null {
+  if (!isObj(raw) || !isDay(raw.startDay)) return null;
+  if (!(EXPERIMENT_IDS as readonly unknown[]).includes(raw.id)) return null;
+  return { id: raw.id as Experiment['id'], startDay: raw.startDay };
+}
+
+function sanitizeBudget(raw: unknown): Budget | null {
+  if (!isObj(raw) || !isNum(raw.startedAt) || !isDay(raw.startDay)) return null;
+  const goal = (BUDGET_GOALS as readonly number[]).includes(raw.goal as number)
+    ? (raw.goal as number)
+    : BUDGET_GOALS[0];
+  return {
+    startedAt: raw.startedAt,
+    startDay: raw.startDay,
+    goal,
+    allowance: Math.max(0, num(raw.allowance, 0)),
+    needs: Math.max(0, num(raw.needs, 0)),
+    wants: Math.max(0, num(raw.wants, 0)),
+  };
+}
+
+function sanitizeWords(raw: unknown): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (!isObj(raw)) return out;
+  for (const [k, v] of Object.entries(raw))
+    if (isNum(v) && k.length <= 40) out[k] = Math.min(WORD_MAX_BOX, Math.max(0, Math.floor(v)));
+  return out;
+}
+
+function sanitizeMoods(raw: unknown): MoodEntry[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((m): m is MoodEntry => isObj(m) && isDay(m.day) && isMood(m.mood))
+    .map((m) => ({ day: m.day, mood: m.mood }))
+    .slice(-MOOD_DAYS);
+}
+
 function sanitizeGame(raw: unknown): GameState {
   const d = createDefaultGame();
   const g = isObj(raw) ? raw : {};
@@ -259,7 +371,7 @@ function sanitizeGame(raw: unknown): GameState {
     }
   }
   return {
-    pet: isValidPet(g.pet) ? g.pet : null,
+    pet: sanitizePet(g.pet),
     coins: Math.max(0, Math.floor(num(g.coins, d.coins))),
     memorial: Array.isArray(g.memorial)
       ? (g.memorial.filter((m) => isObj(m) && typeof m.name === 'string') as MemorialEntry[])
@@ -282,6 +394,18 @@ function sanitizeGame(raw: unknown): GameState {
       factsSeen: sanitizeFacts(p.factsSeen),
       favorites: sanitizeFavorites(p.favorites),
       lastQuizDay: typeof p.lastQuizDay === 'string' ? p.lastQuizDay : null,
+      bodyTopics: Array.isArray(p.bodyTopics)
+        ? BODY_TOPICS.filter((t) => (p.bodyTopics as unknown[]).includes(t))
+        : [],
+      casesSolved: num(p.casesSolved, 0),
+      casesCorrect: num(p.casesCorrect, 0),
+      experimentsDone: num(p.experimentsDone, 0),
+      budgetsDone: num(p.budgetsDone, 0),
+      budgetGoalsMet: num(p.budgetGoalsMet, 0),
+      platesDone: num(p.platesDone, 0),
+      words: sanitizeWords(p.words),
+      moods: sanitizeMoods(p.moods),
+      immersionDay: isDay(p.immersionDay) ? p.immersionDay : null,
     },
     bank: sanitizeBank(g.bank),
     diary: Array.isArray(g.diary)
@@ -289,8 +413,13 @@ function sanitizeGame(raw: unknown): GameState {
           g.diary.filter(
             (d) => isObj(d) && typeof d.day === 'string' && isObj(d.care),
           ) as DiaryDay[]
-        ).slice(-DIARY_DAYS)
+        )
+          .slice(-DIARY_DAYS)
+          .map((d) => ({ ...emptyDay(d.day), ...d }))
       : [],
+    plate: sanitizePlate(g.plate),
+    experiment: sanitizeExperiment(g.experiment),
+    budget: sanitizeBudget(g.budget),
   };
 }
 

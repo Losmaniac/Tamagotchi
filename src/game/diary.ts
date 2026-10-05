@@ -8,6 +8,9 @@ export interface DiaryDay {
   day: string; // YYYY-MM-DD local
   care: Partial<Record<CareKind, number>>;
   missedCalls: number;
+  /** Calls that went away after care, and the total minutes they waited. */
+  answered: number;
+  responseMin: number;
   sick: boolean;
   wellRested: boolean;
   /** Time-weighted sums (stat × hours) and total hours sampled. */
@@ -24,6 +27,8 @@ export function emptyDay(day: string): DiaryDay {
     day,
     care: {},
     missedCalls: 0,
+    answered: 0,
+    responseMin: 0,
     sick: false,
     wellRested: false,
     happiness: 0,
@@ -67,4 +72,24 @@ export function feelingOf(rec: DiaryDay): Feeling {
 
 export function careTotal(rec: DiaryDay): number {
   return Object.values(rec.care).reduce((a, b) => a + (b ?? 0), 0);
+}
+
+/** Shifts a YYYY-MM-DD key by whole local days. */
+export function shiftDay(day: string, by: number): string {
+  const [y, m, d] = day.split('-').map(Number);
+  const date = new Date(y!, (m ?? 1) - 1, (d ?? 1) + by);
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${mm}-${dd}`;
+}
+
+/** Diary records from `firstDay` to `lastDay` inclusive (missing days are skipped). */
+export function daysBetween(diary: DiaryDay[], firstDay: string, lastDay: string): DiaryDay[] {
+  return diary.filter((d) => d.day >= firstDay && d.day <= lastDay);
+}
+
+export function average(days: DiaryDay[], key: 'happiness' | 'hunger' | 'energy'): number | null {
+  const hours = days.reduce((a, d) => a + d.hours, 0);
+  if (hours <= 0) return null;
+  return days.reduce((a, d) => a + d[key], 0) / hours;
 }

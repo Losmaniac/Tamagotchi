@@ -163,9 +163,23 @@ function updatePoop(pet: Pet, t: number, dt: number, ctx: Ctx): void {
 function updateSickness(pet: Pet, t: number, hours: number, ctx: Ctx): void {
   if (pet.sick) return;
   let perHour = SICK_BASE_CHANCE;
-  if (pet.stats.hygiene < SICK_LOW_HYGIENE) perHour += SICK_LOW_HYGIENE_CHANCE;
-  if (pet.stats.hunger < SICK_LOW_HUNGER) perHour += SICK_LOW_HUNGER_CHANCE;
-  if (ctx.rng.chance(chanceOver(perHour, hours))) makeSick(pet, t, ctx.rng, ctx.events);
+  const dirty = pet.stats.hygiene < SICK_LOW_HYGIENE;
+  const hungry = pet.stats.hunger < SICK_LOW_HUNGER;
+  if (dirty) perHour += SICK_LOW_HYGIENE_CHANCE;
+  if (hungry) perHour += SICK_LOW_HUNGER_CHANCE;
+  if (!ctx.rng.chance(chanceOver(perHour, hours))) return;
+  // The cause is whichever risk is further below its threshold; otherwise just bad luck.
+  const cause =
+    dirty && hungry
+      ? pet.stats.hygiene / SICK_LOW_HYGIENE <= pet.stats.hunger / SICK_LOW_HUNGER
+        ? 'dirty'
+        : 'hungry'
+      : dirty
+        ? 'dirty'
+        : hungry
+          ? 'hungry'
+          : 'bug';
+  makeSick(pet, t, ctx.rng, ctx.events, cause);
 }
 
 function updateActingUp(pet: Pet, t: number, t1: number, hours: number, ctx: Ctx): void {
@@ -208,7 +222,10 @@ function recordCareMistake(pet: Pet, t: number, call: CallKind, events: SimEvent
 function updateCalls(pet: Pet, t1: number, ctx: Ctx): void {
   const active = new Set(activeCallKinds(pet));
   for (const kind of Object.keys(pet.calls) as CallKind[]) {
-    if (!active.has(kind)) delete pet.calls[kind];
+    if (active.has(kind)) continue;
+    const call = pet.calls[kind];
+    if (call && !pet.dead) ctx.events.push({ type: 'callAnswered', t: t1, ms: t1 - call.since });
+    delete pet.calls[kind];
   }
   for (const kind of active) {
     const call = pet.calls[kind];

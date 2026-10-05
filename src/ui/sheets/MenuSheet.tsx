@@ -2,7 +2,7 @@ import { useT } from '../../i18n/useT';
 import { Sheet } from '../components/Sheet';
 
 export type HubTarget =
-  'encyclopedia' | 'bank' | 'diary' | 'album' | 'achievements' | 'memorial' | 'settings';
+  'learn' | 'encyclopedia' | 'bank' | 'diary' | 'album' | 'achievements' | 'memorial' | 'settings';
 
 /** "Pal hub": everything that isn't a direct care action. */
 export function MenuSheet({
@@ -14,6 +14,7 @@ export function MenuSheet({
 }) {
   const { t } = useT();
   const items: { id: HubTarget; icon: string; label: string; tint: string }[] = [
+    { id: 'learn', icon: '🔬', label: t('menu.learn'), tint: 'bg-emerald-50' },
     { id: 'encyclopedia', icon: '📚', label: t('menu.encyclopedia'), tint: 'bg-sky-50' },
     { id: 'bank', icon: '🐷', label: t('menu.bank'), tint: 'bg-pink-50' },
     { id: 'diary', icon: '📔', label: t('menu.diary'), tint: 'bg-amber-50' },

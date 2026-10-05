@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { sfx } from '../audio/synth';
 import type { MinigameId } from '../game/save';
+import { hasCheckedInToday } from '../game/game';
 import { localMinutes } from '../game/sleep';
 import type { MemorialEntry } from '../game/types';
 import { skyPhase } from '../game/world';
@@ -40,10 +41,22 @@ import { skyGradient } from './sky';
 import { usePhotoCaption } from './usePhotoCaption';
 import { useTodaysFact } from './useTodaysFact';
 
-type SheetId = 'feed' | 'play' | 'stats' | 'menu' | 'debug' | 'shop' | 'photo' | HubTarget;
+type SheetId =
+  | 'feed'
+  | 'play'
+  | 'stats'
+  | 'menu'
+  | 'debug'
+  | 'shop'
+  | 'photo'
+  | 'detective'
+  | 'checkin'
+  | HubTarget;
 
 // Lazy-loaded: only fetched when opened.
 const ShopSheet = lazy(withChunkReload(() => import('./sheets/ShopSheet')));
+const LearnSheet = lazy(withChunkReload(() => import('./learn/LearnSheet')));
+const CheckInCard = lazy(withChunkReload(() => import('./learn/CheckInCard')));
 const MinigameHost = lazy(
   withChunkReload(() =>
     import('../minigames/MinigameHost').then((m) => ({ default: m.MinigameHost })),
@@ -92,6 +105,7 @@ export function MainScreen() {
   const caption = usePhotoCaption();
   const now = useNow(60_000);
   const factIndex = useTodaysFact(pet, now);
+  const checkedIn = hasCheckedInToday(game, now);
   const close = useCallback(() => setSheet(null), []);
   const onCaptureReady = useCallback((fn: CaptureFn | null) => {
     capture.current = fn;
@@ -238,7 +252,7 @@ export function MainScreen() {
       <StorageWarning />
       {!egg && <InstallBanner />}
       <div className="mt-2">
-        <StatusBanner pet={pet} onAction={onAction} />
+        <StatusBanner pet={pet} onAction={onAction} onInvestigate={() => setSheet('detective')} />
       </div>
 
       <div className="relative flex min-h-0 flex-1 flex-col">
@@ -257,6 +271,15 @@ export function MainScreen() {
             className="anim-pop absolute top-3 left-3 z-10 flex min-h-12 items-center gap-1 rounded-full bg-white/90 px-3 font-black text-ink shadow-md ring-2 ring-candy-yellow"
           >
             <span aria-hidden="true">💡</span> {t('fact.button')}
+          </button>
+        )}
+        {!checkedIn && !egg && !pet.asleep && (
+          <button
+            type="button"
+            onClick={() => setSheet('checkin')}
+            className={`anim-pop absolute left-3 z-10 flex min-h-12 items-center gap-1 rounded-full bg-white/90 px-3 font-black text-ink shadow-md ring-2 ring-candy-blue ${factIndex !== null ? 'top-[4.25rem]' : 'top-3'}`}
+          >
+            <span aria-hidden="true">💬</span> {t('checkin.button')}
           </button>
         )}
         <JoyToast />
@@ -336,6 +359,9 @@ export function MainScreen() {
       {sheet === 'debug' && <DebugPanel onClose={close} />}
       <Suspense>
         {sheet === 'shop' && <ShopSheet onClose={close} />}
+        {sheet === 'learn' && <LearnSheet onClose={close} />}
+        {sheet === 'detective' && <LearnSheet onClose={close} initial="detective" />}
+        {sheet === 'checkin' && <CheckInCard onClose={close} />}
         {playing && (
           <MinigameHost
             id={playing}

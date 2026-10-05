@@ -16,7 +16,8 @@ export function formatNumber(locale: Locale, n: number): string {
   return new Intl.NumberFormat(locale).format(n);
 }
 
-function interpolate(locale: Locale, template: string, params: Params = {}): string {
+/** Fills `{name}` placeholders (numbers are locale-formatted). */
+export function interpolate(locale: Locale, template: string, params: Params = {}): string {
   return template.replace(/\{(\w+)\}/g, (match, name: string) => {
     const value = params[name];
     if (value === undefined) return match;
