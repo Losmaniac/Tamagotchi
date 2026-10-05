@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BIRTHDAY_COINS } from '../../game/constants';
+import { localDayKey } from '../../game/game';
 import { useT } from '../../i18n/useT';
 import { PHRASES } from '../../i18n/vocab';
 import { useAppStore } from '../../store/useAppStore';
@@ -43,6 +44,8 @@ export function SpeechBubble() {
   const { locale } = useT();
   const speech = useAppStore((s) => s.speech);
   const bilingual = useAppStore((s) => s.settings.bilingual);
+  // Challenge day: the pet speaks only the other language, without a translation.
+  const immersion = useAppStore((s) => s.game.progress.immersionDay === localDayKey(s.now()));
   const [hidden, setHidden] = useState<number | null>(null);
   useEffect(() => {
     if (!speech) return;
@@ -61,7 +64,11 @@ export function SpeechBubble() {
         key={speech.id}
         className="anim-pop relative rounded-2xl bg-white px-4 py-2 text-center shadow-lg"
       >
-        {bilingual ? (
+        {immersion ? (
+          <p className="text-lg font-black text-candy-purple" lang={other}>
+            {phrase[other]}
+          </p>
+        ) : bilingual ? (
           <>
             <p className="text-lg font-black text-candy-purple" lang={other}>
               {phrase[other]}

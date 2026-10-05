@@ -1,8 +1,11 @@
 import { useT } from '../../i18n/useT';
 import type { PetAction } from '../../store/useAppStore';
 import { SNACKS } from '../../game/food';
+import { localDayKey } from '../../game/game';
+import { currentPlate, plateGoals } from '../../game/nutrition';
 import { useAppStore } from '../../store/useAppStore';
 import { Sheet } from '../components/Sheet';
+import { useNow } from '../hooks';
 
 export function MenuButton({
   icon,
@@ -47,6 +50,9 @@ export function FeedSheet({
   const species = useAppStore((s) => s.game.pet?.species);
   const favorites = useAppStore((s) => s.game.progress.favorites);
   const found = species ? favorites[species] : undefined;
+  const plateRaw = useAppStore((s) => s.game.plate);
+  const now = useNow(60_000);
+  const goals = plateGoals(currentPlate(plateRaw, localDayKey(now)));
   return (
     <Sheet title={t('feed.title')} onClose={onClose}>
       <div className="space-y-3 pb-2">
@@ -98,6 +104,13 @@ export function FeedSheet({
           ))}
         </ul>
         <p className="text-xs text-ink/60">💡 {t('feed.mealsTip')}</p>
+        <p className="text-xs font-bold text-emerald-700">
+          🥗{' '}
+          {t('feed.plate', {
+            done: goals.filter((g) => g.done).length,
+            total: goals.length,
+          })}
+        </p>
       </div>
     </Sheet>
   );

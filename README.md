@@ -18,11 +18,36 @@ See [CLAUDE.md](CLAUDE.md) for the full product spec.
   "While you were away…" card summarises what happened.
 - **Petting:** tap to poke, slow swipe to stroke. Mood-driven faces and animations; particles.
 - **3 mini-games** (Snack Catch, Rhythm Tap, Left or Right), coins, a cosmetics-only shop,
-  16 achievements and a memorial for past pets.
+  21 achievements and a memorial for past pets.
 - **Settings:** language, sound, vibration, low-power mode, bedtime, export/import save, and
   reset (asks twice).
 - **PWA:** fully offline after the first load, custom install button (Android), iOS
   "Add to Home Screen" hint, and a "New version — tap to refresh" message.
+
+### New in 0.4 — Learning lab
+
+A 🔬 **Learning lab** in the menu (lazy-loaded) turns the care loop into real-world learning:
+
+- **Wild cousins:** the real animal behind each pal — range map, diet, lifespan and IUCN Red
+  List status, with the reason it is (or isn't) threatened.
+- **Life cycle:** game stages next to the real animal's ages, plus one life-cycle fact.
+- **Body book:** a page about food, play, sleep, hygiene, germs or medicine unlocks the first
+  time the pet needs it. Need banners have a "Why?" button with a one-line explanation.
+- **Food lab:** nutrition dots (sugar, protein, fibre, vitamins) for every food, and a weekly
+  balanced-plate challenge (variety, enough meals, few treats).
+- **Detective mode:** sickness now has a cause (dirt, hunger, too many snacks or just bad luck).
+  The clues from that moment are recorded, and naming the cause pays coins.
+- **Care experiments:** pick a hypothesis, compare 3 test days with a diary baseline, then judge
+  the data (supported, not supported, unclear, or not a fair test).
+- **Budget week:** a pretend 70-coin allowance for needs and wants, with a savings goal; leftover
+  coins are paid out, but skipping needs doesn't count.
+- **Report card:** weekly grades for consistency, response time, needs met and sleep routine,
+  plus a real-life care tip for the species.
+- **Feelings check-in:** once a day the pet asks how _you_ are and replies with a coping tip; for
+  heavy feelings it suggests talking to someone (and 116 111). Stays on the device.
+- **Word Snack packs:** food, animals, feelings, body, weather and school, with spaced repetition
+  (missed words come back first) and a "challenge day" when the pet speaks only the other
+  language.
 
 ### New in 0.3 — more pals, softer graphics
 
@@ -123,6 +148,9 @@ e2e/           Playwright smoke tests
 - **Balancing:** every number lives in `src/game/constants.ts`.
   `tests/game/scenarios.test.ts` simulates attentive, casual and careless players to keep the
   difficulty curve honest.
+- **Learning content:** texts for the lab live in `src/i18n/learn/{en,cs}.ts` behind one typed
+  interface, so a missing translation fails the type check; real-world data is in
+  `src/game/wild.ts`.
 - **Save format:** `src/game/save.ts` has `schemaVersion` and a migration table. Bump the
   version and add a migration whenever the shape changes.
 - **Models:** each species is an entry in `MODEL_REGISTRY` (`src/three/PetModel.tsx`). A `.glb`

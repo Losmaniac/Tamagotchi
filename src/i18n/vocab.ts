@@ -1,38 +1,5 @@
-// Bilingual content: words for the Word Snack game and short phrases the pet says
-// in bilingual mode. Each entry carries both languages, so nothing can go missing.
-
-export interface Word {
-  emoji: string;
-  en: string;
-  cs: string;
-}
-
-export const WORDS: readonly Word[] = [
-  { emoji: '🍎', en: 'apple', cs: 'jablko' },
-  { emoji: '🍌', en: 'banana', cs: 'banán' },
-  { emoji: '🥕', en: 'carrot', cs: 'mrkev' },
-  { emoji: '🍞', en: 'bread', cs: 'chleba' },
-  { emoji: '🧀', en: 'cheese', cs: 'sýr' },
-  { emoji: '🥛', en: 'milk', cs: 'mléko' },
-  { emoji: '🍓', en: 'strawberry', cs: 'jahoda' },
-  { emoji: '🍒', en: 'cherry', cs: 'třešeň' },
-  { emoji: '🥚', en: 'egg', cs: 'vejce' },
-  { emoji: '🐟', en: 'fish', cs: 'ryba' },
-  { emoji: '🍐', en: 'pear', cs: 'hruška' },
-  { emoji: '🍇', en: 'grapes', cs: 'hrozny' },
-  { emoji: '🥒', en: 'cucumber', cs: 'okurka' },
-  { emoji: '🍅', en: 'tomato', cs: 'rajče' },
-  { emoji: '🥔', en: 'potato', cs: 'brambora' },
-  { emoji: '🍯', en: 'honey', cs: 'med' },
-  { emoji: '🍰', en: 'cake', cs: 'dort' },
-  { emoji: '🍋', en: 'lemon', cs: 'citron' },
-  { emoji: '🧅', en: 'onion', cs: 'cibule' },
-  { emoji: '🍉', en: 'watermelon', cs: 'meloun' },
-  { emoji: '💧', en: 'water', cs: 'voda' },
-  { emoji: '🍄', en: 'mushroom', cs: 'houba' },
-  { emoji: '🌽', en: 'corn', cs: 'kukuřice' },
-  { emoji: '🍪', en: 'cookie', cs: 'sušenka' },
-];
+// Short phrases the pet says in bilingual mode. Each entry carries both languages,
+// so nothing can go missing. (Word Snack's vocabulary lives in words.ts.)
 
 export const PHRASES = {
   hello: { en: 'Hi!', cs: 'Ahoj!' },

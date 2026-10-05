@@ -1,6 +1,8 @@
+import { useState } from 'react';
+import { hasOpenCase } from '../../game/detective';
 import { isCritical, timeToNextStage } from '../../game/status';
 import { activeCallKinds } from '../../game/simulation';
-import type { Pet } from '../../game/types';
+import type { CallKind, Pet } from '../../game/types';
 import { useT } from '../../i18n/useT';
 import type { PetAction } from '../../store/useAppStore';
 import { formatClockDuration } from '../format';
@@ -9,7 +11,9 @@ import { useNow } from '../hooks';
 interface Banner {
   tone: 'danger' | 'warn' | 'info' | 'calm';
   text: string;
-  action?: { label: string; run: PetAction };
+  action?: { label: string; run: PetAction | (() => void) };
+  /** Short "why does this matter?" explanation, revealed on demand. */
+  why?: CallKind | 'sick';
 }
 
 function EggBanner({ pet }: { pet: Pet }) {
@@ -26,9 +30,18 @@ function EggBanner({ pet }: { pet: Pet }) {
 }
 
 /** One prioritised message: critical > sick > tantrum > needs > sleeping. */
-export function StatusBanner({ pet, onAction }: { pet: Pet; onAction: (a: PetAction) => void }) {
+export function StatusBanner({
+  pet,
+  onAction,
+  onInvestigate,
+}: {
+  pet: Pet;
+  onAction: (a: PetAction) => void;
+  onInvestigate?: () => void;
+}) {
   const { t } = useT();
   const now = useNow(60_000);
+  const [whyOpen, setWhyOpen] = useState<string | null>(null);
   if (pet.dead) return null;
   if (pet.stage === 'egg') return <EggBanner pet={pet} />;
   const name = pet.name;
@@ -37,7 +50,15 @@ export function StatusBanner({ pet, onAction }: { pet: Pet; onAction: (a: PetAct
   let banner: Banner | null = null;
 
   if (isCritical(pet)) banner = { tone: 'danger', text: t('status.critical', { name }) };
-  else if (pet.sick) banner = { tone: 'danger', text: t('status.sick', { name }) };
+  else if (pet.sick)
+    banner = {
+      tone: 'danger',
+      text: t('status.sick', { name }),
+      why: 'sick',
+      ...(hasOpenCase(pet) && onInvestigate
+        ? { action: { label: `🔍 ${t('detective.investigate')}`, run: onInvestigate } }
+        : {}),
+    };
   else if (pet.actingUp && !pet.asleep)
     banner = {
       tone: 'warn',
@@ -50,6 +71,7 @@ export function StatusBanner({ pet, onAction }: { pet: Pet; onAction: (a: PetAct
     banner = {
       tone: 'warn',
       text: gentle ? `${name}: ${t(`hint.${c}`)}` : t(`need.${c}`, { name }),
+      why: c,
     };
   } else if (pet.asleep)
     banner = {
@@ -67,22 +89,38 @@ export function StatusBanner({ pet, onAction }: { pet: Pet; onAction: (a: PetAct
     calm: 'bg-indigo-900/70 text-white',
   };
   const icon = { danger: '🚨', warn: '⚠️', info: 'ℹ️', calm: '' }[banner.tone];
+  const action = banner.action;
+  const why = banner.why;
+  const showWhy = why !== undefined && whyOpen === why;
   return (
     <div
       role={banner.tone === 'danger' ? 'alert' : 'status'}
-      className={`anim-pop mx-3 flex min-h-12 items-center gap-2 rounded-2xl px-3 py-1.5 font-bold shadow-md ${tones[banner.tone]}`}
+      className={`anim-pop mx-3 rounded-2xl px-3 py-1.5 font-bold shadow-md ${tones[banner.tone]}`}
     >
-      {icon && <span aria-hidden="true">{icon}</span>}
-      <span className="flex-1 text-sm leading-tight">{banner.text}</span>
-      {banner.action && (
-        <button
-          type="button"
-          onClick={() => onAction(banner.action!.run)}
-          className="min-h-11 shrink-0 rounded-xl bg-white/90 px-3 text-sm font-black text-ink shadow active:scale-95"
-        >
-          {banner.action.label}
-        </button>
-      )}
+      <div className="flex min-h-11 items-center gap-2">
+        {icon && <span aria-hidden="true">{icon}</span>}
+        <span className="flex-1 text-sm leading-tight">{banner.text}</span>
+        {why && (
+          <button
+            type="button"
+            onClick={() => setWhyOpen(showWhy ? null : why)}
+            aria-expanded={showWhy}
+            className="min-h-11 shrink-0 rounded-xl bg-white/30 px-2 text-xs font-black active:scale-95"
+          >
+            {t('status.why')}
+          </button>
+        )}
+        {action && (
+          <button
+            type="button"
+            onClick={() => (typeof action.run === 'function' ? action.run() : onAction(action.run))}
+            className="min-h-11 shrink-0 rounded-xl bg-white/90 px-3 text-sm font-black text-ink shadow active:scale-95"
+          >
+            {action.label}
+          </button>
+        )}
+      </div>
+      {showWhy && <p className="pb-1 text-xs leading-snug font-semibold">💡 {t(`why.${why}`)}</p>}
     </div>
   );
 }

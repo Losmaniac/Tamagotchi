@@ -96,7 +96,7 @@ export function feedSnack(input: Pet, now: number, food: SnackId = 'cookie'): Ac
     if (pet.snackTimes.length > OVERFEED_SNACKS && !pet.sick) {
       const sick = withRng(pet, (rng) => {
         if (!rng.chance(OVERFEED_SICK_CHANCE)) return false;
-        makeSick(pet, now, rng, events);
+        makeSick(pet, now, rng, events, 'overfed');
         return true;
       });
       if (sick) return 'gotSick';

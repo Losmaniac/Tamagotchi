@@ -1,0 +1,466 @@
+import type { LearnText } from './types';
+
+export const learnEn: LearnText = {
+  lab: {
+    title: 'Learning lab',
+    intro: 'Real science, money skills and feelings — all from looking after your pal.',
+    tiles: {
+      wild: { title: 'Wild cousins', desc: 'Meet the real animals' },
+      life: { title: 'Life cycle', desc: 'Game days vs real years' },
+      body: { title: 'Body book', desc: 'Why needs matter' },
+      food: { title: 'Food lab', desc: 'Nutrition and a balanced plate' },
+      detective: { title: 'Detective', desc: 'Why did your pal get sick?' },
+      experiments: { title: 'Experiments', desc: 'Test an idea like a scientist' },
+      budget: { title: 'Budget week', desc: 'Needs, wants and saving' },
+      report: { title: 'Report card', desc: 'How did your week go?' },
+    },
+  },
+
+  wild: {
+    intro: 'Every pal has a real-world cousin. Here’s where they live and how they’re doing.',
+    realName: {
+      cat: 'African wildcat',
+      dog: 'Grey wolf',
+      bunny: 'European rabbit',
+      fox: 'Red fox',
+      panda: 'Giant panda',
+      dragon: 'Komodo dragon',
+      axolotl: 'Axolotl',
+      penguin: 'Emperor penguin',
+      owl: 'Barn owl',
+      turtle: 'Green sea turtle',
+      sparky: 'Electric eel',
+    },
+    relation: {
+      cat: 'The wild ancestor of every pet cat.',
+      dog: 'Pet dogs descend from ancient wolves.',
+      bunny: 'All pet rabbits come from this wild species.',
+      fox: 'The most widespread wild dog-like animal on Earth.',
+      panda: 'A bear that eats almost only bamboo.',
+      dragon: 'The world’s largest living lizard.',
+      axolotl: 'A salamander that keeps its baby features for life.',
+      penguin: 'The tallest and heaviest penguin.',
+      owl: 'A silent night hunter with a heart-shaped face.',
+      turtle: 'A sea turtle named after the green colour of its fat.',
+      sparky: 'Sparky is made up — this is the real animal that inspired it.',
+    },
+    diet: {
+      cat: 'Mice, rats, birds and insects.',
+      dog: 'Deer, elk and other large animals, hunted in packs.',
+      bunny: 'Grass, herbs and leaves.',
+      fox: 'Mice, rabbits, insects, fruit — almost anything.',
+      panda: 'Bamboo, up to 12–38 kg a day.',
+      dragon: 'Deer, pigs and carrion.',
+      axolotl: 'Worms, insect larvae and small fish.',
+      penguin: 'Fish, krill and squid.',
+      owl: 'Mainly voles, mice and shrews.',
+      turtle: 'Adults eat seagrass and algae.',
+      sparky: 'Fish and other small animals.',
+    },
+    threat: {
+      cat: 'Common, but mixing with pet cats blurs the wild species.',
+      dog: 'Recovering in many places after years of hunting.',
+      bunny: 'In its home, Spain and Portugal, viral diseases killed most rabbits.',
+      fox: 'Doing well — it even lives in big cities.',
+      panda: 'Saved from “Endangered” by protecting bamboo forests.',
+      dragon: 'Lives on just a few islands; rising seas shrink its home.',
+      axolotl: 'Its only wild home, the lakes of Mexico City, is polluted and shrinking.',
+      penguin: 'Needs sea ice to raise chicks; warming melts the ice.',
+      owl: 'Widespread, but loses old barns and hunting meadows.',
+      turtle: 'Recovered thanks to beach protection; plastic and nets are still a danger.',
+      sparky: 'Common in the Amazon and Orinoco rivers.',
+    },
+    status: {
+      LC: 'Least concern',
+      NT: 'Near threatened',
+      VU: 'Vulnerable',
+      EN: 'Endangered',
+      CR: 'Critically endangered',
+    },
+    region: {
+      na: 'North America',
+      sa: 'South America',
+      eu: 'Europe',
+      af: 'Africa',
+      as: 'Asia',
+      oc: 'Australia & Oceania',
+      an: 'Antarctica',
+      sea: 'Warm seas worldwide',
+    },
+    labels: {
+      status: 'Status',
+      where: 'Where it lives',
+      diet: 'What it eats',
+      lifespan: 'Lifespan',
+      lifespanPet: 'Lifespan as a pet',
+      why: 'Why',
+    },
+    about: 'about {value}',
+    iucnNote: 'Status from the IUCN Red List, the world’s list of threatened species.',
+  },
+
+  life: {
+    intro: 'Your pal grows up in days. Real animals take months or years.',
+    inGame: 'In the game',
+    realLife: 'Real animal',
+    realPet: 'Real pet',
+    olderThan: '{age} and older',
+    now: 'Now',
+    note: {
+      cat: 'Kittens open their eyes at about 1–2 weeks old.',
+      dog: 'Small dogs usually live longer than big dogs.',
+      bunny: 'Rabbits can have babies when they are only 4–6 months old.',
+      fox: 'Young foxes leave home in autumn to find their own territory.',
+      panda: 'A newborn panda weighs only about 100 g — like a bar of chocolate.',
+      dragon: 'Baby Komodo dragons live in trees to stay safe from adults.',
+      axolotl: 'Axolotls keep their baby features, like feathery gills, all their life (neoteny).',
+      penguin: 'Emperor dads keep the egg warm on their feet for about 2 months.',
+      owl: 'Owlets hatch a few days apart, so siblings are different sizes.',
+      turtle: 'Green turtles may need 20–40 years to become adults.',
+      sparky: 'Electric eel dads guard a foam nest full of eggs.',
+    },
+    approx: 'Real ages are rounded, typical values.',
+  },
+
+  body: {
+    intro: 'A new page unlocks each time your pal needs something.',
+    locked: 'Locked',
+    unlock: {
+      food: 'Unlocks when your pal gets hungry.',
+      play: 'Unlocks when your pal gets bored.',
+      sleep: 'Unlocks when your pal gets tired.',
+      hygiene: 'Unlocks when your pal gets dirty.',
+      germs: 'Unlocks when your pal gets sick.',
+      medicine: 'Unlocks when you give medicine.',
+    },
+    topics: {
+      food: {
+        title: 'Food is fuel',
+        text: [
+          'Food gives the body energy and the building blocks for muscles, bones and blood.',
+          'Proteins build and repair, carbohydrates give quick energy, and fats store energy and help absorb vitamins.',
+          'Regular meals keep energy steady. Lots of sugar gives a quick high and then a crash.',
+        ],
+      },
+      play: {
+        title: 'Play and movement',
+        text: [
+          'Moving makes the heart and lungs stronger and releases chemicals that lift your mood.',
+          'Young animals play to practise hunting, escaping and getting along with others.',
+          'Boredom is stressful for animals too — zoos give them puzzles and toys (enrichment).',
+        ],
+      },
+      sleep: {
+        title: 'Why we sleep',
+        text: [
+          'During sleep the body repairs muscles and the brain sorts and stores memories.',
+          'Darkness tells the brain to make melatonin, the sleep hormone. Bright light, including screens, slows it down.',
+          'Teenagers need about 8–10 hours of sleep a night.',
+        ],
+      },
+      hygiene: {
+        title: 'Keeping clean',
+        text: [
+          'Dirt and waste are full of bacteria. Most are harmless, but some make you ill.',
+          'Washing hands with soap for 20 seconds removes most germs.',
+          'Animals clean themselves too: cats lick their fur and birds take dust baths.',
+        ],
+      },
+      germs: {
+        title: 'Germs and the immune system',
+        text: [
+          'Germs are tiny living things such as bacteria and viruses. Some can make the body sick.',
+          'The immune system is the body’s defence team: white blood cells find and destroy invaders.',
+          'Sleep, good food and hygiene help it work; hunger and stress make it weaker.',
+        ],
+      },
+      medicine: {
+        title: 'How medicine helps',
+        text: [
+          'Some medicines kill germs (antibiotics work on bacteria, not viruses). Others ease symptoms like pain or fever.',
+          'Take the full dose a doctor or vet prescribes — stopping early can let germs come back.',
+          'Never give human medicine to pets: some, like paracetamol, are poisonous to cats.',
+        ],
+      },
+    },
+  },
+
+  food: {
+    intro: 'What’s in your pal’s food? More dots means more of it.',
+    nutrients: { sugar: 'Sugar', protein: 'Protein', fibre: 'Fibre', vitamins: 'Vitamins' },
+    groups: {
+      fruit: 'Fruit',
+      veg: 'Veg',
+      protein: 'Protein',
+      meal: 'Meal',
+      treat: 'Treat',
+    },
+    meal: 'Balanced meal',
+    plateTitle: 'Balanced plate challenge',
+    plateText: 'This week, feed a mix of foods. Variety gives the body everything it needs.',
+    treats: 'Treats: at most {max}',
+    claim: 'Collect {coins} coins',
+    claimed: 'Collected this week ✓ — a new plate starts on Monday.',
+    reward: 'Balanced week! +{coins} coins',
+    tableTitle: 'Nutrition table',
+    tip: 'No single food has everything. That’s why a mix beats your favourite every day.',
+  },
+
+  detective: {
+    intro: 'When your pal gets sick, the clues show why. Can you work it out?',
+    howTo: [
+      'Look at the evidence from the moment your pal got sick.',
+      'Find the clue that looks wrong.',
+      'Name the most likely cause. A correct guess pays coins.',
+    ],
+    noCase: 'No open case. Your pal is healthy — or the case is closed.',
+    openCase: 'Open the case',
+    caseTitle: 'Case: why is {name} sick?',
+    question: 'What’s the most likely cause?',
+    clues: {
+      hygiene: 'Cleanliness',
+      poops: 'Poops left lying around',
+      hunger: 'Food level',
+      snacks: 'Snacks in the last 2 hours',
+      energy: 'Energy',
+    },
+    suspicious: 'Suspicious!',
+    causes: {
+      dirty: {
+        label: 'Too dirty',
+        explain: 'Dirt and poop are full of germs. Keep your pal clean to protect it.',
+      },
+      hungry: {
+        label: 'Too hungry',
+        explain: 'A hungry body has less energy to fight germs. Regular meals keep it strong.',
+      },
+      overfed: {
+        label: 'Too many snacks',
+        explain: 'Lots of snacks in a short time upset the stomach. Space them out.',
+      },
+      bug: {
+        label: 'Just bad luck',
+        explain:
+          'Every clue looked fine. Sometimes we catch a bug anyway — illness isn’t always someone’s fault.',
+      },
+    },
+    right: 'Case solved! +{coins} coins',
+    wrong: 'Not quite. The cause was: {answer}.',
+    stats: 'Cases solved: {solved} · correct: {correct}',
+    medicine: 'Don’t forget the medicine!',
+  },
+
+  experiments: {
+    intro: 'Scientists test ideas with a fair test. Try one with your pal.',
+    steps: [
+      '1. Hypothesis: a guess you can test.',
+      '2. Before: the diary measures your recent days.',
+      '3. Change one thing for 3 days.',
+      '4. Compare and decide what the data says.',
+    ],
+    defs: {
+      play: {
+        hypothesis: 'If I play with my pal more, it will be happier.',
+        change: 'Play more than usual (toys or mini-games).',
+      },
+      stroke: {
+        hypothesis: 'If I stroke my pal more, it will be happier.',
+        change: 'Stroke your pal slowly several times a day.',
+      },
+      meals: {
+        hypothesis: 'If I give meals instead of snacks, my pal will stay fuller.',
+        change: 'Give more meals and fewer snacks.',
+      },
+      sleep: {
+        hypothesis: 'If I turn the lights off on time, my pal will have more energy.',
+        change: 'Turn the lights off as soon as your pal falls asleep at night.',
+      },
+    },
+    metric: { happiness: 'Fun', energy: 'Energy', hunger: 'Food' },
+    needBaseline:
+      'Care for your pal for a day first, so you have a “before” to compare with. Scientists call it a baseline.',
+    start: 'Start experiment',
+    running: 'Test day {day} of {total}',
+    doThis: 'Your job:',
+    cancel: 'Stop experiment',
+    before: 'Before',
+    after: 'During test',
+    changed: 'How much you did it (per day)',
+    noData: 'no data',
+    question: 'What does the data say?',
+    conclusions: {
+      supported: {
+        label: 'It worked',
+        feedback: 'The measurement went clearly up, so the data supports the hypothesis.',
+      },
+      notSupported: {
+        label: 'It made it worse',
+        feedback: 'The measurement went clearly down — the opposite of the hypothesis.',
+      },
+      unclear: {
+        label: 'No clear difference',
+        feedback:
+          'The change was too small to tell. Real scientists would repeat the test or test longer.',
+      },
+      unfair: {
+        label: 'Not a fair test',
+        feedback:
+          'You didn’t actually change the thing you were testing (or there’s no data), so we can’t conclude anything.',
+      },
+    },
+    reward: '+{coins} coins for finishing the experiment',
+    sample: '3 days is a small sample — scientists repeat tests to be sure.',
+    done: 'Data says: {answer}',
+  },
+
+  budget: {
+    intro: 'Get a pretend allowance for one week. Cover your pal’s needs, then save the rest.',
+    rules: [
+      'Needs come first: meals, cleaning and medicine.',
+      'Wants are extras: snacks and mini-games.',
+      'Whatever you don’t spend is paid out as real coins at the end.',
+      'Skipping needs to save money doesn’t count — your pal must be cared for.',
+    ],
+    goal: 'Savings goal',
+    start: 'Start budget week',
+    needs: 'Needs',
+    wants: 'Wants',
+    left: 'Left',
+    daysLeft: 'Days left: {days}',
+    prices: 'Prices this week',
+    items: {
+      meal: 'Meal',
+      snack: 'Healthy snack',
+      sweetSnack: 'Sweet snack',
+      play: 'Play',
+      clean: 'Cleaning',
+      medicine: 'Medicine',
+      stroke: 'Stroking',
+      scold: 'Scolding',
+      minigame: 'Mini-game',
+    },
+    free: 'Playing with toys and stroking are free!',
+    outcomes: {
+      great: { title: 'Goal reached!', text: 'You covered every need and saved {left}.' },
+      short: {
+        title: 'Under budget',
+        text: 'You saved {left}, but not your goal. Next time, cut back on wants.',
+      },
+      overspent: {
+        title: 'Over budget',
+        text: 'You spent more than your allowance. In real life that means borrowing — and paying back more.',
+      },
+      skimped: {
+        title: 'Needs were skipped',
+        text: 'You saved {left}, but your pal missed {missed} calls. Needs come before savings.',
+      },
+    },
+    collect: 'Collect {coins} coins',
+    cancel: 'Stop budget week',
+    ready: 'The week is over — see how you did!',
+  },
+
+  report: {
+    intro: 'Your last 7 days as a carer.',
+    categories: {
+      consistency: { label: 'Consistency', detail: 'Days with good care: {value}/7' },
+      response: { label: 'Response time', detail: 'Average wait for help: {value} min' },
+      needs: { label: 'Needs met', detail: 'Missed calls: {value}' },
+      routine: { label: 'Sleep routine', detail: 'Restful dark nights: {value}/7' },
+    },
+    overall: 'Overall',
+    empty: 'Care for your pal for a day and your first report card will appear.',
+    tipTitle: 'Real-life tip',
+    tips: {
+      cat: [
+        'Real cats need a clean litter box every day.',
+        'Cats need play every day — chasing toys keeps them fit.',
+      ],
+      dog: [
+        'Most dogs need 1–2 walks every day.',
+        'Chocolate, grapes and onions are poisonous to dogs.',
+      ],
+      bunny: [
+        'Rabbits should eat mostly hay; their teeth never stop growing.',
+        'Rabbits are social and are happier living in pairs.',
+      ],
+      fox: [
+        'Foxes are wild — don’t feed them; close your bins instead.',
+        'If you see a fox cub alone, leave it — its mum is usually nearby.',
+      ],
+      panda: [
+        'Pandas aren’t pets. Some zoos help breed them to protect the species.',
+        'Saving forests helps pandas and thousands of other species too.',
+      ],
+      dragon: [
+        'Real lizards need warmth and UV light from special lamps.',
+        'Wild Komodo dragons are dangerous; only watch them with rangers.',
+      ],
+      axolotl: [
+        'Pet axolotls need cool, clean water around 16–18 °C.',
+        'Axolotls have delicate skin — they shouldn’t be handled.',
+      ],
+      penguin: [
+        'Penguins aren’t pets. Cutting plastic and carbon helps their oceans.',
+        'Watch wild penguins from a distance, so they aren’t stressed.',
+      ],
+      owl: [
+        'Owls aren’t good pets; they need large spaces and whole prey.',
+        'An owl box on a barn can give wild owls a home.',
+      ],
+      turtle: [
+        'Pet turtles can live for decades — a lifelong promise.',
+        'On beaches, keep lights off at night so turtle hatchlings find the sea.',
+      ],
+      sparky: [
+        'Electric eels are wild river fish — never touch one!',
+        'Keeping rivers clean protects electric fish and their homes.',
+      ],
+    },
+    gradeText: {
+      A: 'Excellent',
+      B: 'Good',
+      C: 'Needs work',
+      D: 'Tough week',
+    },
+  },
+
+  checkin: {
+    question: 'How are you today?',
+    moods: {
+      happy: 'Happy',
+      calm: 'Calm',
+      excited: 'Excited',
+      tired: 'Tired',
+      sad: 'Sad',
+      worried: 'Worried',
+      angry: 'Angry',
+      lonely: 'Lonely',
+    },
+    replies: {
+      happy: 'Yay! Your good mood is contagious!',
+      calm: 'Nice. Calm is a great place to be.',
+      excited: 'Ooh, something good coming up?',
+      tired: 'Me too sometimes. Rest is important.',
+      sad: 'I’m sorry you feel sad. I’m here.',
+      worried: 'Worries feel heavy. Let’s take it slowly.',
+      angry: 'Anger is a normal feeling. It’s what we do with it that matters.',
+      lonely: 'Feeling lonely is hard. Thanks for telling me.',
+    },
+    tips: {
+      happy: 'Tip: notice what made today good — you can do more of it.',
+      calm: 'Tip: try remembering this feeling the next time you’re stressed.',
+      excited: 'Tip: share the good news with someone you like.',
+      tired: 'Tip: get to bed a bit earlier tonight and put screens away.',
+      sad: 'Tip: talking to someone, a walk outside or your favourite song can help a little.',
+      worried: 'Tip: breathe in for 4, hold for 4, breathe out for 6. Repeat 5 times.',
+      angry: 'Tip: pause before you act — count to 10 or move your body to let it out.',
+      lonely: 'Tip: send a message to a friend or family member. Small contact helps.',
+    },
+    talk: 'If a feeling sticks around or feels too big, talk to someone you trust — a parent, teacher or friend.',
+    helpline: 'In many European countries, 116 111 is a free helpline for young people.',
+    privacy: 'Your answer stays on this device.',
+    history: 'Your moods',
+    done: 'Thanks for checking in!',
+  },
+};
